@@ -1,0 +1,2170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Tether: a focus and study app with notes, quizzes and step-by-step problem help.">
+<title>Tether</title>
+<style>
+/* Apple system palette (iOS / macOS semantic colors) */
+:root{
+  --bg:#E1E8F0; --surface:#EEF3F8; --sunk:#D6DFE9; --fill:rgba(70,95,130,.11); --line:rgba(50,75,110,.18);
+  --ink:#1C2430; --muted:rgba(40,55,78,.68); --faint:rgba(40,55,78,.32);
+  --accent:#3A7BD5; --accent-ink:#F4F8FC; --accent-soft:rgba(58,123,213,.14);
+  --good:#34C759; --warn:#FF9500; --bad:#FF3B30; --purple:#AF52DE; --teal:#30B0C7;
+  --grid:rgba(60,60,67,.12);
+  --display:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+  --body:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --mono:ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121821; --surface:#1B2330; --sunk:#243042; --fill:rgba(118,118,128,.24); --line:rgba(84,84,88,.6);
+    --ink:#FFFFFF; --muted:rgba(235,235,245,.6); --faint:rgba(235,235,245,.3);
+    --accent:#5B9BEF; --accent-ink:#0E1624; --accent-soft:rgba(91,155,239,.2);
+    --good:#30D158; --warn:#FF9F0A; --bad:#FF453A; --purple:#BF5AF2; --teal:#40C8E0;
+    --grid:rgba(235,235,245,.12); --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121821; --surface:#1B2330; --sunk:#243042; --fill:rgba(118,118,128,.24); --line:rgba(84,84,88,.6);
+  --ink:#FFFFFF; --muted:rgba(235,235,245,.6); --faint:rgba(235,235,245,.3);
+  --accent:#5B9BEF; --accent-ink:#0E1624; --accent-soft:rgba(91,155,239,.2);
+  --good:#30D158; --warn:#FF9F0A; --bad:#FF453A; --purple:#BF5AF2; --teal:#40C8E0;
+  --grid:rgba(235,235,245,.12); --shadow:none;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:17px/1.4 var(--body);letter-spacing:-.01em;padding-inline:16px;padding-block:20px 48px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:34px;font-weight:700;letter-spacing:-.02em}
+h2{font-size:22px;font-weight:700;letter-spacing:-.015em}
+h3{font-size:17px;font-weight:600}
+p{margin:0}
+.label{font-size:13px;letter-spacing:0;text-transform:uppercase;color:var(--muted);font-weight:400}
+.muted{color:var(--muted)}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+header p{color:var(--muted);font-size:15px}
+/* segmented control */
+nav,.seg{display:flex;gap:2px;background:var(--fill);padding:2px;border-radius:9px}
+nav button,.seg button{border:0;background:transparent;color:var(--ink);font:500 14px var(--body);padding:6px 16px;border-radius:7px;cursor:pointer;flex:1;white-space:nowrap}
+nav button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--surface);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 0 1px rgba(0,0,0,.1)}
+:root[data-theme="dark"] nav button[aria-selected="true"],:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:#33415A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) nav button[aria-selected="true"],:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:#33415A}}
+.panel{background:var(--surface);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+label.field{display:flex;flex-direction:column;gap:6px}
+input[type=text],textarea{font:17px var(--body);color:var(--ink);background:var(--fill);border:0;border-radius:10px;padding:11px 12px;width:100%}
+textarea{resize:vertical;min-height:56px}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--accent-soft);outline-offset:1px;box-shadow:0 0 0 1px var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:0;background:var(--fill);color:var(--ink);font:15px var(--body);padding:7px 14px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn{border:0;border-radius:12px;font:600 17px var(--body);padding:13px 20px;cursor:pointer;background:var(--fill);color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent);padding-inline:10px}
+.btn.small{padding:7px 14px;font-size:15px;border-radius:999px}
+.btn.ghost.small{background:var(--fill)}
+.btn:active{opacity:.7}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hint{font-size:13px;color:var(--muted)}
+/* iOS switch */
+input.switch{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:999px;background:var(--fill);position:relative;cursor:pointer;flex:none;transition:background .2s;margin:0}
+input.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#F7FAFD;box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16);transition:transform .2s}
+input.switch:checked{background:var(--good)}
+input.switch:checked::after{transform:translateX(20px)}
+.setting{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:17px}
+/* running */
+.run{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:28px;align-items:start}
+@media (max-width:640px){.run{grid-template-columns:1fr}}
+.ringbox{position:relative;width:100%;max-width:300px;aspect-ratio:1;margin:0 auto}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ringtext{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.clock{font:300 54px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.goalcard{background:var(--accent-soft);border-radius:12px;padding:16px 18px}
+.goalcard p{font-family:var(--display);font-size:22px;font-weight:600;line-height:1.25;margin-top:4px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.list li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:11px 0;font-size:17px;border-bottom:.5px solid var(--line)}
+.list li:last-child{border-bottom:0}
+.list li span{overflow-wrap:anywhere}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal{background:var(--surface);border-radius:14px;padding:22px;max-width:400px;width:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h2{font-size:19px}
+.plan{border-left:3px solid var(--accent);padding:6px 0 6px 12px;font-size:16px}
+/* patterns */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat{background:var(--fill);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font:600 26px var(--mono);font-variant-numeric:tabular-nums}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:100px 1fr 32px;gap:10px;align-items:center;font-size:15px}
+.bar .track{height:10px;background:var(--fill);border-radius:5px;overflow:hidden}
+.bar .fill{height:100%;background:var(--warn);border-radius:5px}
+.bar .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:110px;padding-top:8px}
+.hours div{background:var(--warn);border-radius:3px 3px 0 0;min-height:2px;opacity:.45}
+.hours div.peak{opacity:1}
+.haxis{display:grid;grid-template-columns:repeat(4,1fr);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.banner{background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:15px}
+.insight{background:var(--fill);border-radius:10px;padding:12px 14px;font-size:16px}
+.planrow{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center}
+@media (max-width:480px){.planrow{grid-template-columns:1fr;gap:4px}}
+/* charts */
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font:11px var(--body);fill:var(--muted)}
+.hero{display:flex;flex-direction:column;gap:0}
+.hero b{font:600 30px var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.hero b small{font-size:17px;color:var(--muted);font-weight:500}
+.tip{position:absolute;top:-6px;transform:translateX(-50%);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:13px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:2}
+.tip b{display:block;font:600 15px var(--mono);font-variant-numeric:tabular-nums}
+.charthead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:7px 10px;border-bottom:.5px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase}
+/* room */
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.person{background:var(--fill);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.person.me{box-shadow:inset 0 0 0 2px var(--accent)}
+.pill{display:inline-block;font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--fill);color:var(--muted);align-self:flex-start}
+.pill.focus{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.pill.break{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.done{text-decoration:line-through;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.ringbox circle.prog{transition:stroke-dashoffset .9s linear}}
+/* level badge */
+.level{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:999px;padding:5px 14px 5px 5px;font-size:13px;box-shadow:var(--shadow)}
+.level b{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:linear-gradient(180deg,#5E5CE6,var(--accent));color:#fff;font:700 14px var(--mono)}
+.xpbar{width:90px;height:4px;background:var(--fill);border-radius:2px;overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--accent);transition:width .6s ease}
+.headright{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+/* steps: Reminders-style circles */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.steps li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--line)}
+.steps li:last-child{border-bottom:0}
+.steps li label{display:flex;gap:12px;align-items:center;flex:1;cursor:pointer;overflow-wrap:anywhere}
+.steps input[type=checkbox],.list input[type=checkbox]{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);flex:none;margin:0;cursor:pointer;display:grid;place-content:center}
+.steps input[type=checkbox]:checked,.list input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+.steps input[type=checkbox]:checked::after,.list input[type=checkbox]:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.steps li.ticked span{color:var(--muted)}
+.steps li.pop{animation:pop .35s ease}
+@keyframes pop{50%{transform:scale(1.02)}}
+.x{border:0;background:var(--fill);color:var(--muted);cursor:pointer;font-size:15px;line-height:1;width:24px;height:24px;border-radius:50%}
+.stepbar{height:4px;background:var(--fill);border-radius:2px;overflow:hidden}
+.stepbar i{display:block;height:100%;background:var(--accent);transition:width .4s ease}
+.sound .chip{font-size:14px;padding:5px 12px}
+/* break */
+.breath{width:180px;height:180px;margin:8px auto;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative}
+.breath::before{content:"";position:absolute;inset:10px;border-radius:50%;background:radial-gradient(circle,var(--teal),color-mix(in srgb,var(--teal) 30%,transparent));opacity:.55;transform:scale(var(--s,.6));transition:transform 4s ease-in-out}
+.breath span{position:relative;font:600 18px var(--display)}
+.xpgain{font:600 34px var(--mono);color:var(--good);text-align:center}
+.keys{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+kbd{font:12px var(--body);background:var(--fill);border-radius:5px;padding:1px 6px;color:var(--ink)}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--surface);color:var(--ink);padding:10px 20px;border-radius:999px;font-weight:600;font-size:15px;z-index:9;box-shadow:0 8px 28px rgba(0,0,0,.22)}
+/* study mode */
+.studybox{display:flex;flex-direction:column;gap:10px;background:var(--fill);border-radius:12px;padding:14px}
+.dropzone{border:1.5px dashed var(--faint);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;background:var(--surface);transition:border-color .2s,background .2s}
+.dropzone.over{border-color:var(--accent);background:var(--accent-soft)}
+.dropzone.nudge{border-color:var(--warn)}
+.dropzone b{font-size:16px}
+.notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.note{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:start;background:var(--surface);border-radius:10px;padding:10px}
+.note img,.note .txticon{width:56px;height:42px;object-fit:cover;border-radius:6px;background:var(--fill)}
+.note .txticon{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+.note h4{margin:0;font:600 15px var(--body)}
+.note ul{margin:4px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:2px}
+.note > div{min-width:0;overflow-wrap:anywhere}
+.nudgetext{font-size:14px;color:var(--warn);font-weight:600}
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:12px}
+.quizq{font:600 19px/1.3 var(--display)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;border:0;background:var(--fill);color:var(--ink);font:16px var(--body);padding:12px 14px;border-radius:10px;cursor:pointer}
+.opt:hover:not(:disabled){background:var(--accent-soft)}
+.opt.right{background:color-mix(in srgb,var(--good) 24%,transparent);font-weight:600}
+.opt.wrong{background:color-mix(in srgb,var(--bad) 20%,transparent)}
+.opt:disabled{cursor:default;color:var(--ink)}
+.why{font-size:15px;color:var(--muted)}
+.score{font:600 40px var(--mono);font-variant-numeric:tabular-nums}
+details.studyitem{background:var(--fill);border-radius:10px;padding:10px 14px}
+details.studyitem summary{cursor:pointer;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+details.studyitem[open] summary{margin-bottom:8px}
+/* welcome + first-session coaching */
+.welcome{align-items:center;text-align:center;max-width:440px;gap:14px;padding:28px 24px}
+.welcome .art{width:112px;height:112px}
+.welcome p{max-width:36ch}
+.dots{display:flex;gap:7px;justify-content:center}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.dots i.on{background:var(--accent)}
+.coach{background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:15px}
+.helpimg{max-width:100%;max-height:220px;border-radius:10px;border:1px solid var(--line);object-fit:contain;align-self:flex-start}
+.steplist{display:flex;flex-direction:column;gap:12px}
+.steprow{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+.steprow p{margin:2px 0 0}
+.stepnum{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 13px var(--mono);flex:none}
+.probbtn{display:flex;gap:12px;align-items:center;text-align:left;border:0;background:var(--fill);color:var(--ink);font:16px var(--body);padding:12px 14px;border-radius:10px;cursor:pointer;width:100%}
+.probbtn:hover{background:var(--accent-soft)}
+.answerbox{background:color-mix(in srgb,var(--good) 16%,transparent);border-radius:10px;padding:12px 14px}
+.msg{background:var(--fill);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.msg p{white-space:pre-wrap;overflow-wrap:anywhere}
+#helpMic.on{color:var(--bad)}
+.noteblock{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-bottom:.5px solid var(--line)}
+.noteblock:last-of-type{border-bottom:0}
+.noteblock .row{gap:6px}
+.noteline{display:flex;gap:6px;align-items:center}
+.noteline input{flex:1}
+#usageBars .bar{grid-template-columns:minmax(120px,200px) 1fr 44px}
+#usageBars .fill{background:var(--accent)}
+footer{padding-top:4px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:8;width:100%;height:100%}
+</style>
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+input[type=password]{font:17px var(--body);color:var(--ink);background:var(--fill);border:0;border-radius:10px;padding:11px 12px;width:100%}
+footer,#breakFeedback{display:none!important} /* feedback and usage counts need claude.ai */
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Tether</h1>
+      <p>Say what done looks like, park stray thoughts, and learn what pulls you away.</p>
+    </div>
+    <div class="headright">
+    <div class="level" title="Earn XP by finishing sessions, steps, and check-ins">
+      <b id="lvl">1</b>
+      <div style="display:flex;flex-direction:column;gap:3px"><span id="lvlName">Level 1</span><div class="xpbar"><i id="xpFill" style="width:0%"></i></div></div>
+    </div>
+    <nav role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-focus" aria-selected="true" data-tab="focus">Focus</button>
+      <button role="tab" id="tab-help" aria-selected="false" data-tab="help">Help</button>
+      <button role="tab" id="tab-patterns" aria-selected="false" data-tab="patterns">Patterns</button>
+      <button role="tab" id="tab-room" aria-selected="false" data-tab="room">Room <span id="roomCount"></span></button>
+      <button role="tab" id="tab-insights" aria-selected="false" data-tab="insights" hidden>Insights <span id="fbCount"></span></button>
+    </nav>
+    <button class="btn ghost small" id="aiSettingsBtn">AI settings</button>
+    </div>
+  </header>
+
+  <!-- FOCUS: setup -->
+  <section id="v-setup" class="panel" aria-labelledby="h-setup">
+    <h2 id="h-setup">Start a session</h2>
+    <label class="field">
+      <span class="label">Done looks like…</span>
+      <textarea id="goal" rows="2" placeholder="Draft the intro paragraph of my history essay">Draft the intro paragraph of my history essay</textarea>
+      <span class="hint">Be specific. "Work on essay" leaves room for distraction; "write 150 words of the intro" doesn't.</span>
+    </label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span class="label">Small steps (optional)</span>
+      <ul class="steps" id="setupSteps"></ul>
+      <div class="row" style="flex-wrap:nowrap">
+        <input type="text" id="stepInput" placeholder="Add a step and press Enter" autocomplete="off">
+        <button class="btn small" id="stepAdd">Add</button>
+      </div>
+      <div class="row">
+        <button class="btn small ghost" id="breakdownBtn" hidden>Break it down for me</button>
+        <span class="hint" id="breakdownHint">Each step you tick off during the session earns XP.</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field" style="display:flex;flex-direction:column;gap:8px">
+        <span class="label">How long</span>
+        <div class="chips" id="durChips">
+          <button class="chip" data-min="5" aria-pressed="false">5 min · just start</button>
+          <button class="chip" data-min="15" aria-pressed="false">15</button>
+          <button class="chip" data-min="25" aria-pressed="true">25</button>
+          <button class="chip" data-min="45" aria-pressed="false">45</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span class="label">Energy right now</span>
+        <div class="chips" id="energyChips">
+          <button class="chip" data-e="low" aria-pressed="false">Low</button>
+          <button class="chip" data-e="ok" aria-pressed="true">OK</button>
+          <button class="chip" data-e="high" aria-pressed="false">High</button>
+        </div>
+        <span class="hint" id="energyHint"></span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span class="label">Ready check</span>
+      <div class="chips" id="ritual">
+        <button class="chip" aria-pressed="false">Phone out of reach</button>
+        <button class="chip" aria-pressed="false">Only the tabs I need</button>
+        <button class="chip" aria-pressed="false">Water nearby</button>
+        <button class="chip" aria-pressed="false">Focus playlist on</button>
+      </div>
+      <span class="hint">Doing the same setup every time helps your brain switch into work mode.</span>
+    </div>
+    <div class="row">
+      <label class="setting" for="randomChecks" style="flex:1">Ask me "Still on it?" at random moments<input type="checkbox" class="switch" id="randomChecks" checked></label>
+    </div>
+    <div class="row" id="studyRow" hidden>
+      <label class="setting" for="studyMode" style="flex:1"><span>Study mode<span class="hint" style="display:block">Show Tether what you're working on. Gemini takes notes and quizzes you at the end.</span></span><input type="checkbox" class="switch" id="studyMode" checked></label>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="startBtn">Start focusing</button>
+      <span class="hint" id="roomHint"></span>
+    </div>
+  </section>
+
+  <!-- FOCUS: running -->
+  <section id="v-run" class="panel" hidden aria-label="Focus session">
+    <div class="run">
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+        <div class="ringbox">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--sunk)" stroke-width="8"/>
+            <circle class="prog" id="ring" cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="0"/>
+          </svg>
+          <div class="ringtext">
+            <div class="clock" id="clock">25:00</div>
+            <div class="hint" id="clockSub">remaining</div>
+          </div>
+        </div>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost small" id="pauseBtn">Pause</button>
+          <button class="btn ghost small" id="endBtn">End session</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+        <p class="coach" id="coachTip" hidden>First session tip: when a thought pops up, press N and park it. If you drift, tap "I got pulled away".</p>
+        <div class="goalcard"><span class="label">You said you'd</span><p id="runGoal"></p></div>
+        <div id="runStepsBox" style="display:flex;flex-direction:column;gap:8px">
+          <div class="row" style="justify-content:space-between"><span class="label">Steps</span><span class="hint" id="stepCount"></span></div>
+          <div class="stepbar"><i id="stepFill" style="width:0%"></i></div>
+          <ul class="steps" id="runSteps"></ul>
+        </div>
+        <div class="studybox" id="studyBox" hidden>
+          <div class="row" style="justify-content:space-between"><span class="label">Study notes</span><span class="hint" id="noteCount"></span></div>
+          <div class="dropzone" id="dropZone">
+            <b>Show Tether what you're working on</b>
+            <span class="hint" id="shotHow"></span>
+            <span class="nudgetext" id="captureNudge" hidden>It's been a while. What are you on now?</span>
+            <button class="btn small" id="shotBtn">Choose a screenshot</button>
+            <input type="file" id="shotInput" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+          </div>
+          <div class="row" style="flex-wrap:nowrap;align-items:flex-end">
+            <textarea id="studyText" rows="2" placeholder="Or paste a paragraph you're reading"></textarea>
+            <button class="btn small" id="studyTextBtn">Add</button>
+          </div>
+          <span class="hint">Gemini reads what you add to write notes. Tether keeps the notes, never the screenshots.</span>
+          <ul class="notes" id="notesList"></ul>
+        </div>
+        <div class="row sound">
+          <span class="label">Sound</span>
+          <div class="chips" id="soundChips">
+            <button class="chip" data-s="off" aria-pressed="true">Off</button>
+            <button class="chip" data-s="brown" aria-pressed="false">Brown noise</button>
+            <button class="chip" data-s="rain" aria-pressed="false">Rain</button>
+            <button class="chip" data-s="waves" aria-pressed="false">Waves</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label class="label" for="parkInput">Park a thought</label>
+          <div class="row" style="flex-wrap:nowrap">
+            <input type="text" id="parkInput" placeholder="Reply to Sam about Saturday" autocomplete="off">
+            <button class="btn small" id="parkBtn">Park</button>
+          </div>
+          <span class="hint">Write it down and keep working. You'll sort these at the end.</span>
+          <ul class="list" id="parkList"></ul>
+        </div>
+        <div class="row">
+          <button class="btn" id="distractedBtn">I got pulled away</button>
+          <span class="hint" id="distractCount"></span>
+        </div>
+      </div>
+    </div>
+    <div class="keys"><span><kbd>Space</kbd> pause</span><span><kbd>N</kbd> park a thought</span><span><kbd>D</kbd> pulled away</span><span><kbd>1</kbd>–<kbd>9</kbd> tick a step</span></div>
+  </section>
+
+  <!-- FOCUS: break -->
+  <section id="v-break" class="panel" hidden aria-labelledby="h-break" style="text-align:center">
+    <h2 id="h-break">Session saved</h2>
+    <div class="xpgain" id="xpGain">+0 XP</div>
+    <p class="muted" id="breakMsg"></p>
+    <div class="breath" id="breath"><span id="breathWord">Breathe in</span></div>
+    <p class="hint">Take a short break. Follow the circle: in for 4, hold for 4, out for 4, hold for 4.</p>
+    <div class="clock" id="breakClock" style="font-size:28px">05:00</div>
+    <div class="row" style="justify-content:center">
+      <button class="btn primary" id="nextBtn">Start another session</button>
+      <button class="btn ghost" id="toPatterns">See my patterns</button>
+    </div>
+    <p class="hint">How is Tether working for you? <button class="btn ghost small" id="breakFeedback">Send feedback</button></p>
+  </section>
+
+  <!-- FOCUS: review -->
+  <section id="v-review" class="panel" hidden aria-labelledby="h-review">
+    <h2 id="h-review">How did it go?</h2>
+    <p class="muted" id="reviewSummary"></p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <span class="label">Did you finish what you said you'd do?</span>
+      <div class="chips" id="outcomeChips">
+        <button class="chip" data-o="yes" aria-pressed="false">Yes</button>
+        <button class="chip" data-o="partly" aria-pressed="false">Partly</button>
+        <button class="chip" data-o="no" aria-pressed="false">No</button>
+      </div>
+    </div>
+    <div class="quiz" id="quizBox" hidden>
+      <span class="label">Quiz yourself</span>
+      <p class="hint" id="quizIntro"></p>
+      <button class="btn primary small" id="quizStart" style="align-self:flex-start">Start quiz</button>
+      <div class="quiz" id="quizArea"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="sortBox">
+      <span class="label">Sort your parked thoughts</span>
+      <ul class="list" id="sortList"></ul>
+    </div>
+    <div class="row"><button class="btn primary" id="saveBtn">Save session</button></div>
+  </section>
+
+  <!-- PATTERNS -->
+  <section id="v-patterns" hidden style="display:flex;flex-direction:column;gap:20px">
+    <div class="banner" id="sampleBanner" hidden>Showing example data. Finish a session and this page switches to your own.</div>
+    <div class="seg" id="rangeSeg" role="group" aria-label="Time range" style="max-width:360px">
+      <button data-r="W" aria-pressed="true">Week</button>
+      <button data-r="M" aria-pressed="false">Month</button>
+      <button data-r="6M" aria-pressed="false">6 Months</button>
+    </div>
+    <div class="panel">
+      <div class="charthead">
+        <div class="hero">
+          <span class="label" id="focusHeroLabel">Daily average</span>
+          <b id="focusHero">0m</b>
+          <span class="hint" id="focusRange"></span>
+        </div>
+        <button class="btn ghost small" id="tableToggle" aria-expanded="false">Show as table</button>
+      </div>
+      <div class="chart" id="chFocus" role="img" aria-label="Focus time over time"></div>
+      <div class="tablewrap" id="focusTable" hidden></div>
+    </div>
+    <div class="grid3">
+      <div class="panel">
+        <div class="hero"><span class="label">On task at check-ins</span><b id="ontaskHero">–</b></div>
+        <div class="chart" id="chOntask" role="img" aria-label="Percent of check-ins on task over time"></div>
+      </div>
+      <div class="panel">
+        <div class="hero"><span class="label">Distractions</span><b id="distHero">0</b></div>
+        <div class="chart" id="chDist" role="img" aria-label="Distractions logged over time"></div>
+      </div>
+      <div class="panel">
+        <div class="hero"><span class="label">Total XP</span><b id="xpHero">0</b></div>
+        <div class="chart" id="chXP" role="img" aria-label="Total XP over time"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>This week</h2>
+      <div class="stats" id="stats"></div>
+      <div class="insight" id="insight"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>What pulls you away</h2>
+        <div class="bars" id="causeBars"></div>
+      </div>
+      <div class="panel">
+        <h2>When it happens</h2>
+        <div>
+          <div class="hours" id="hourBars" role="img" aria-label="Distractions by hour of day"></div>
+          <div class="haxis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span></div>
+        </div>
+        <p class="hint">Distractions logged per hour of the day. The brightest bar is your worst hour.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <div>
+        <h2>Your if-then plans</h2>
+        <p class="hint">Decide now what you'll do when a trigger hits. Tether shows the plan the moment you log that distraction.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="plans"></div>
+    </div>
+    <div class="panel" id="studyPanel" hidden>
+      <div>
+        <h2>Study notes</h2>
+        <p class="hint">Notes Gemini wrote from what you showed it. Quiz yourself again a day later to make it stick.</p>
+      </div>
+      <div id="studyList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div class="panel">
+      <h2>Parked thoughts to handle</h2>
+      <ul class="list" id="todoList"></ul>
+    </div>
+  </section>
+
+  <!-- SNAP A PROBLEM -->
+  <section id="v-help" hidden style="display:flex;flex-direction:column;gap:20px">
+    <div class="panel">
+      <div>
+        <h2>Snap a Problem</h2>
+        <p class="hint">Show Tether a problem and it walks you through it one step at a time, then adds the key ideas to your notes.</p>
+      </div>
+      <div class="dropzone" id="helpDrop">
+        <b>Paste or drop a problem here</b>
+        <span class="hint" id="helpHow"></span>
+        <button class="btn small" id="helpPick">Choose a screenshot</button>
+        <input type="file" id="helpFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+      </div>
+      <img id="helpImg" class="helpimg" alt="Your snapped problem" hidden>
+      <div id="helpStage" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+    <div class="panel">
+      <h3 id="helpChatTitle">Ask Tether anything</h3>
+      <div id="helpMsgs" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div class="row" style="flex-wrap:nowrap;align-items:flex-end">
+        <textarea id="helpInput" rows="1" placeholder="How do I find the derivative of x² sin x?"></textarea>
+        <button class="btn small" id="helpMic" title="Talk instead of typing" aria-label="Talk instead of typing"></button>
+        <button class="btn primary small" id="helpSend">Send</button>
+      </div>
+      <p class="hint" id="helpVoiceNote" hidden></p>
+      <p class="hint">AI can make mistakes, especially with math. Check each step.</p>
+    </div>
+  </section>
+
+  <!-- ROOM -->
+  <section id="v-room" class="panel" hidden aria-labelledby="h-room">
+    <div>
+      <h2 id="h-room">Co-working room</h2>
+      <p class="hint">Everyone with this page open right now. Seeing others working keeps you honest. Nobody sees your parked thoughts or patterns, only your goal and timer.</p>
+    </div>
+    <div class="people" id="people"></div>
+  </section>
+
+  <!-- INSIGHTS (only the owner sees this tab) -->
+  <section id="v-insights" hidden style="display:flex;flex-direction:column;gap:20px">
+    <div class="panel">
+      <div>
+        <h2>Who's using Tether</h2>
+        <p class="hint">Everyone you've shared Tether with, you included. Counts show which features people use, never what they type.</p>
+      </div>
+      <div class="stats" id="usageStats"></div>
+    </div>
+    <div class="panel">
+      <div class="charthead">
+        <div>
+          <h2>Feature usage</h2>
+          <p class="hint">Bars show how many people used each feature at least once. The number on the right counts every use.</p>
+        </div>
+      </div>
+      <div class="bars" id="usageBars"></div>
+    </div>
+    <div class="panel">
+      <h2>Feedback</h2>
+      <ul class="list" id="fbList"></ul>
+    </div>
+  </section>
+
+  <footer class="row" style="justify-content:space-between">
+    <span class="hint" style="max-width:52ch">Tether counts which features you use, never what you type, so the app can keep getting better.</span>
+    <button class="btn ghost small" id="feedbackBtn">Send feedback</button>
+  </footer>
+</div>
+
+<!-- modals -->
+<div class="overlay" id="m-check" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mc-h">
+    <h2 id="mc-h">Still on it?</h2>
+    <p class="muted" id="mc-goal"></p>
+    <div class="row"><button class="btn primary" id="mc-yes">Yes, on task</button><button class="btn" id="mc-no">No, I drifted</button></div>
+  </div>
+</div>
+<div class="overlay" id="m-distract" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="md-h">
+    <h2 id="md-h">What pulled you away?</h2>
+    <div class="chips" id="causeChips"></div>
+    <div id="md-plan" hidden style="display:flex;flex-direction:column;gap:12px">
+      <span class="label">Your plan for this</span>
+      <p class="plan" id="md-plantext"></p>
+    </div>
+    <div class="row"><button class="btn primary" id="md-back" hidden>Back to it</button><button class="btn ghost" id="md-cancel">Cancel</button></div>
+  </div>
+</div>
+<div class="overlay" id="m-extend" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mx-h">
+    <h2 id="mx-h">You started. Keep going?</h2>
+    <p class="muted">Five minutes done. The hardest part is behind you.</p>
+    <div class="row"><button class="btn primary" id="mx-yes">Keep going, 10 more</button><button class="btn" id="mx-no">I'm done for now</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-feedback" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mf-h">
+    <h2 id="mf-h">Send feedback</h2>
+    <div class="chips" id="fbKinds">
+      <button class="chip" data-k="idea" aria-pressed="true">Idea</button>
+      <button class="chip" data-k="bug" aria-pressed="false">Something's broken</button>
+      <button class="chip" data-k="love" aria-pressed="false">I love this</button>
+    </div>
+    <label class="field">
+      <span class="label">Tell us more</span>
+      <textarea id="fbText" rows="4" maxlength="2000" placeholder="I wish the timer could…"></textarea>
+    </label>
+    <p class="hint" id="fbStatus"></p>
+    <div class="row"><button class="btn primary" id="fbSend">Send</button><button class="btn ghost" id="fbCancel">Cancel</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-quiz" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mq-h">
+    <h2 id="mq-h">Quiz yourself</h2>
+    <div class="quiz" id="mqArea"></div>
+    <div class="row"><button class="btn ghost" id="mqClose">Close</button></div>
+  </div>
+</div>
+<div class="overlay" id="m-welcome" hidden>
+  <div class="modal welcome" role="dialog" aria-modal="true" aria-labelledby="mw-h">
+    <div id="mwArt"></div>
+    <h2 id="mw-h">Welcome to Tether</h2>
+    <p class="muted" id="mwText"></p>
+    <div class="dots" id="mwDots"><i></i><i></i><i></i></div>
+    <div class="row" style="justify-content:center">
+      <button class="btn ghost" id="mwSkip">Skip</button>
+      <button class="btn primary" id="mwNext">Next</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="overlay" id="m-ai" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ai-h">
+    <h2 id="ai-h">AI settings</h2>
+    <p class="muted">Tether uses Google's Gemini for notes, quizzes and problem help. Get a free key at aistudio.google.com/apikey, then paste it here. It's saved only in this browser.</p>
+    <label class="field"><span class="label">Gemini API key</span><input type="password" id="aiKey" autocomplete="off" placeholder="Paste your key"></label>
+    <label class="field"><span class="label">Model</span><input type="text" id="aiModel" autocomplete="off"></label>
+    <p class="hint" id="aiStatus"></p>
+    <div class="row"><button class="btn primary" id="aiSave">Save</button><button class="btn ghost" id="aiForget">Remove key</button><button class="btn ghost" id="aiClose">Close</button></div>
+  </div>
+</div>
+<canvas id="confetti" hidden></canvas>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  const KEY = "tether-gemini-key", MODEL = "tether-gemini-model", DEFAULT_MODEL = "gemini-flash-latest";
+  const get = k => { try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } };
+  const toBase64 = blob => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",")[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+  async function gemini(input, opts = {}, json = false){
+    const key = get(KEY);
+    if (!key) throw { code: "no_key" };
+    const turns = typeof input === "string" ? [{ role: "user", content: input }] : input;
+    const contents = [];
+    for (const t of turns){
+      const role = t.role === "assistant" ? "model" : "user";
+      const last = contents[contents.length - 1];
+      if (last && last.role === role) last.parts.push({ text: t.content });
+      else contents.push({ role, parts: [{ text: t.content }] });
+    }
+    if (opts.images){
+      const images = Array.isArray(opts.images) ? opts.images : [...(opts.images.length ? opts.images : [opts.images])];
+      for (const img of images) contents[contents.length - 1].parts.push({ inline_data: { mime_type: img.type || "image/png", data: await toBase64(img) } });
+    }
+    const body = { contents };
+    if (json) body.generationConfig = { responseMimeType: "application/json" };
+    const model = get(MODEL) || DEFAULT_MODEL;
+    let res;
+    try {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify(body), signal: opts.signal
+      });
+    } catch(e){ throw { code: e && e.name === "AbortError" ? "cancelled" : "upstream_error" }; }
+    if (!res.ok){
+      const err = await res.json().catch(() => ({}));
+      const msg = (err.error && err.error.message) || "";
+      throw { code: res.status === 429 ? "rate_limited" : (res.status === 400 && /key/i.test(msg)) || res.status === 401 || res.status === 403 ? "bad_key" : "upstream_error", message: msg };
+    }
+    const data = await res.json();
+    const text = ((data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || []).map(p => p.text || "").join("");
+    if (opts.onText) opts.onText({ text, delta: text });
+    return text;
+  }
+  const sample = async (input, opts) => ({ text: await gemini(input, opts, false), truncated: false });
+  sample.json = async (input, opts) => {
+    const text = await gemini(input, opts, true);
+    try { return JSON.parse(text); }
+    catch(e){
+      const m = text.match(/[\[{][\s\S]*[\]}]/);
+      if (m) { try { return JSON.parse(m[0]); } catch(e2){} }
+      throw { code: "invalid_json", text };
+    }
+  };
+  sample.limits = async () => ({ images: { maxCount: 5, mediaTypes: ["image/png", "image/jpeg", "image/webp", "image/gif"] } });
+  window.claude = { use: async name => name === "sample" && get(KEY) ? sample : null };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const $ = id => document.getElementById(id);
+    const open = () => {
+      $("aiKey").value = get(KEY); $("aiModel").value = get(MODEL) || DEFAULT_MODEL;
+      $("aiStatus").textContent = get(KEY) ? "A key is saved in this browser." : "No key yet. Notes, quizzes and Help need one.";
+      $("m-ai").hidden = false;
+    };
+    $("aiSettingsBtn").onclick = open;
+    $("aiClose").onclick = () => { $("m-ai").hidden = true; };
+    $("aiSave").onclick = () => {
+      try {
+        localStorage.setItem(KEY, $("aiKey").value.trim());
+        localStorage.setItem(MODEL, $("aiModel").value.trim() || DEFAULT_MODEL);
+      } catch(e){}
+      location.reload(); // the page connects to the AI when it loads
+    };
+    $("aiForget").onclick = () => { try { localStorage.removeItem(KEY); } catch(e){} location.reload(); };
+    if (!get(KEY)) $("aiSettingsBtn").classList.add("primary");
+  });
+})();
+</script>
+<script>
+(() => {
+const CAUSES = [
+  ["phone","Phone"],["stuck","Got stuck"],["bored","Bored"],["person","Someone"],
+  ["hungry","Hungry / tired"],["noise","Noise"],["web","Browsing"],["other","Other"]
+];
+const CAUSE_NAME = Object.fromEntries(CAUSES);
+const DEFAULT_PLANS = {
+  phone:"Put it face-down in another room. Check it at the break.",
+  stuck:"Write the exact question I'm stuck on, then try the next smallest step.",
+  bored:"Set a 5-minute sprint and see how much I can do.",
+  person:"Say: \"Give me until the timer ends, then I'm all yours.\"",
+  hungry:"Grab water or a snack now, then sit back down.",
+  noise:"Headphones on with the focus playlist.",
+  web:"Park the link in Tether and close the tab.",
+  other:"Take three slow breaths and reread my goal."
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- storage: private db doc when signed in, else browser ---------- */
+let state = { sessions:[], plans:{...DEFAULT_PLANS}, todos:[], xp:0, welcomed:false };
+let dbDoc = null;
+let onBreak = false;
+function loadLocal(){ try { const s = JSON.parse(localStorage.getItem("tether") || "null"); if (s) state = {...state, ...s, plans:{...DEFAULT_PLANS, ...(s.plans||{})}}; } catch(e){} }
+let saveTimer = null;
+function save(){
+  try { localStorage.setItem("tether", JSON.stringify(state)); } catch(e){}
+  if (!dbDoc) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    state.sessions = state.sessions.slice(-300);
+    dbDoc.set(JSON.parse(JSON.stringify(state))).catch(() => {});
+  }, 600);
+}
+loadLocal();
+
+/* ---------- tabs ---------- */
+let tab = "focus";
+try { tab = localStorage.getItem("tether-tab") || "focus"; } catch(e){}
+function showTab(t){
+  tab = t;
+  try { localStorage.setItem("tether-tab", t); } catch(e){}
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  const focusView = onBreak ? "v-break" : run ? (run.reviewing ? "v-review" : "v-run") : "v-setup";
+  ["v-setup","v-run","v-review","v-break"].forEach(id => $(id).hidden = !(t === "focus" && id === focusView));
+  $("v-patterns").hidden = t !== "patterns";
+  $("v-room").hidden = t !== "room";
+  $("v-help").hidden = t !== "help";
+  if (t === "help") renderHelp();
+  $("v-insights").hidden = t !== "insights";
+  if (t === "patterns"){ renderPatterns(); track("patterns_viewed"); }
+  if (t === "room"){ renderRoom(); track("room_viewed"); }
+  if (t === "insights") renderInsights();
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+/* ---------- setup ---------- */
+let minutes = 25, energy = "ok";
+function chipGroup(el, attr, onPick){
+  el.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+    el.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c));
+    onPick(c.dataset[attr]);
+  });
+}
+chipGroup($("durChips"), "min", v => minutes = +v);
+chipGroup($("energyChips"), "e", v => { energy = v; energyHint(); });
+$("ritual").querySelectorAll(".chip").forEach(c => c.onclick = () => c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") !== "true"));
+function energyHint(){
+  $("energyHint").textContent = energy === "low" ? "Low energy: try the 5-minute start, or pick an easier task like email."
+    : energy === "high" ? "High energy: a good time for your hardest task." : "";
+}
+
+/* ---------- steps ---------- */
+let setupSteps = ["Reread the essay prompt", "Write a one-sentence thesis", "Draft the opening hook"];
+function renderSetupSteps(){
+  $("setupSteps").innerHTML = setupSteps.map((s,i) => `<li><span style="flex:1;overflow-wrap:anywhere">${esc(s)}</span><button class="x" data-i="${i}" aria-label="Remove step">×</button></li>`).join("");
+  $("setupSteps").querySelectorAll(".x").forEach(b => b.onclick = () => { setupSteps.splice(+b.dataset.i, 1); renderSetupSteps(); });
+}
+function addStep(){
+  const v = $("stepInput").value.trim(); if (!v) return;
+  setupSteps.push(v); $("stepInput").value = ""; renderSetupSteps(); track("step_added");
+}
+$("stepAdd").onclick = addStep;
+$("stepInput").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); addStep(); } });
+renderSetupSteps();
+
+function renderRunSteps(popIndex){
+  const st = run.steps, done = st.filter(s => s.done).length;
+  $("runStepsBox").hidden = !st.length;
+  $("stepCount").textContent = `${done} of ${st.length}`;
+  $("stepFill").style.width = st.length ? (100*done/st.length) + "%" : "0%";
+  $("runSteps").innerHTML = st.map((s,i) => `<li class="${s.done?"ticked":""}${i===popIndex?" pop":""}"><label><input type="checkbox" data-i="${i}" ${s.done?"checked":""}><span>${i<9?`<kbd>${i+1}</kbd> `:""}${esc(s.text)}</span></label></li>`).join("");
+  $("runSteps").querySelectorAll("input").forEach(c => c.onchange = () => toggleStep(+c.dataset.i));
+}
+function toggleStep(i){
+  const s = run.steps[i]; if (!s) return;
+  s.done = !s.done;
+  renderRunSteps(s.done ? i : -1);
+  if (s.done){
+    tinyChime(); track("step_ticked");
+    if (run.steps.every(x => x.done)) { toast("All steps done. Nice work!"); burst(); }
+    else toast("+5 XP");
+  }
+}
+
+/* Gemini breaks a goal into steps (when this view allows it) */
+let sampler = null;
+$("breakdownBtn").onclick = async () => {
+  const goal = $("goal").value.trim();
+  if (!goal || !sampler) return;
+  const b = $("breakdownBtn"); b.disabled = true; b.textContent = "Thinking…";
+  try {
+    const out = await sampler.json(
+      `Break this focus-session goal into 3 to 5 small, concrete steps a distracted student could start immediately. Each step under 60 characters, starting with a verb. Goal: "${goal}". Reply as JSON: {"steps": ["..."]}`,
+      { modelTier: "quick" });
+    const steps = Array.isArray(out && out.steps) ? out.steps.filter(s => typeof s === "string").slice(0,6) : [];
+    if (steps.length){ setupSteps = steps.map(s => s.slice(0,120)); renderSetupSteps(); track("breakdown"); $("breakdownHint").textContent = "Edit or remove any step that doesn't fit."; }
+    else $("breakdownHint").textContent = "Gemini didn't return steps. Try rewording your goal.";
+  } catch(e){
+    if (e && e.code === "not_granted"){ b.hidden = true; $("breakdownHint").textContent = "Step suggestions are turned off for this page. You can still add your own."; }
+    else $("breakdownHint").textContent = e && e.code === "rate_limited" ? "Too many requests. Wait a minute and try again." : "Couldn't get suggestions right now. Add your own steps instead.";
+  }
+  b.disabled = false; b.textContent = "Break it down for me";
+};
+
+/* ---------- XP and levels ---------- */
+const LEVEL_NAMES = ["Starter","Getting going","Steady","Locked in","Deep diver","Flow finder","Focus pro","Unshakable"];
+function levelOf(xp){ return Math.floor(xp / 100) + 1; }
+function renderLevel(){
+  const xp = state.xp || 0, lv = levelOf(xp);
+  $("lvl").textContent = lv;
+  $("lvlName").textContent = `${LEVEL_NAMES[Math.min(lv-1, LEVEL_NAMES.length-1)]} · ${xp % 100}/100 XP`;
+  $("xpFill").style.width = (xp % 100) + "%";
+}
+function sessionXP(r, outcome){
+  return r.actualMin + (outcome === "yes" ? 20 : outcome === "partly" ? 10 : 0)
+    + 5 * r.steps.filter(s => s.done).length + 3 * r.checks.yes + 2 * (r.quiz ? r.quiz.score : 0);
+}
+
+/* ---------- toast + confetti ---------- */
+let toastTimer = null;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2200);
+}
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function burst(){
+  if (reduceMotion) return;
+  const c = $("confetti"), ctx = c.getContext("2d");
+  c.hidden = false; c.width = innerWidth; c.height = innerHeight;
+  const colors = ["#2F5FD0","#2E8A69","#E0AA48","#86A8F7","#5CC49C","#B8463A"];
+  const parts = Array.from({length:140}, () => ({ x: innerWidth/2, y: innerHeight*0.45, vx:(Math.random()-.5)*14, vy:-Math.random()*13-4,
+    s: 5+Math.random()*6, r: Math.random()*6, vr:(Math.random()-.5)*.4, c: colors[Math.floor(Math.random()*colors.length)] }));
+  let frame = 0;
+  (function step(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); });
+    if (++frame < 150) requestAnimationFrame(step); else { ctx.clearRect(0,0,c.width,c.height); c.hidden = true; }
+  })();
+}
+
+/* ---------- ambient sound (generated, no downloads) ---------- */
+let soundNodes = null;
+function ctxAudio(){ audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+function stopSound(){ if (soundNodes){ soundNodes.forEach(n => { try { n.stop ? n.stop() : n.disconnect(); } catch(e){} }); soundNodes = null; } }
+function playSound(kind){
+  stopSound(); if (kind === "off") return;
+  track("sound");
+  try {
+    const ac = ctxAudio(), len = ac.sampleRate * 4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++){
+      const w = Math.random()*2-1;
+      if (kind === "rain") d[i] = w * 0.5;
+      else { last = (last + 0.02*w) / 1.02; d[i] = last * 3.5; } // brown noise
+    }
+    const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+    const gain = ac.createGain(); gain.gain.value = kind === "rain" ? 0.12 : 0.35;
+    const nodes = [src, gain];
+    let chain = src;
+    if (kind === "rain"){ const f = ac.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 1200; chain.connect(f); chain = f; nodes.push(f); }
+    if (kind === "waves"){
+      const lfo = ac.createOscillator(), lg = ac.createGain();
+      lfo.frequency.value = 0.08; lg.gain.value = 0.25; lfo.connect(lg).connect(gain.gain); lfo.start(); nodes.push(lfo, lg);
+    }
+    chain.connect(gain).connect(ac.destination); src.start();
+    soundNodes = nodes;
+  } catch(e){}
+}
+chipGroup($("soundChips"), "s", playSound);
+function tinyChime(){
+  try { const ac = ctxAudio(), o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = 880; g.gain.setValueAtTime(.08, ac.currentTime); g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + .3);
+    o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + .3); } catch(e){}
+}
+
+/* ---------- break with box breathing ---------- */
+let breakTimer = null, breathTimer = null;
+function startBreak(gain, leveledUp, outcome){
+  onBreak = true;
+  $("xpGain").textContent = `+${gain} XP`;
+  $("breakMsg").textContent = leveledUp ? `Level up! You're now level ${levelOf(state.xp)}: ${LEVEL_NAMES[Math.min(levelOf(state.xp)-1, LEVEL_NAMES.length-1)]}.`
+    : outcome === "yes" ? "You did what you said you'd do." : "Every session counts, even the messy ones.";
+  showTab("focus");
+  const words = ["Breathe in","Hold","Breathe out","Hold"], scales = [1, 1, .6, .6];
+  let phase = 0;
+  const b = $("breath");
+  const step = () => { $("breathWord").textContent = words[phase]; b.style.setProperty("--s", scales[phase]); phase = (phase+1) % 4; };
+  step(); breathTimer = setInterval(step, 4000);
+  const end = Date.now() + 5*60000;
+  const t = () => { const left = Math.max(0, end - Date.now()); $("breakClock").textContent = fmt(left); if (!left){ clearInterval(breakTimer); chime(); toast("Break's over. Ready for another?"); } };
+  t(); breakTimer = setInterval(t, 1000);
+}
+function endBreak(){ onBreak = false; clearInterval(breakTimer); clearInterval(breathTimer); }
+$("nextBtn").onclick = () => { endBreak(); showTab("focus"); $("goal").focus(); $("goal").select(); };
+$("toPatterns").onclick = () => { endBreak(); showTab("patterns"); };
+
+/* ---------- keyboard shortcuts ---------- */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape"){
+    const o = anyModalOpen();
+    if (o && (o.id === "m-distract" || o.id === "m-feedback" || o.id === "m-quiz")) closeModal(o.id);
+    else if (o && o.id === "m-welcome") finishWelcome(false);
+    return;
+  }
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if (typing || e.metaKey || e.ctrlKey || e.altKey || !run || run.reviewing || anyModalOpen() || tab !== "focus") return;
+  if (e.key === " "){ e.preventDefault(); $("pauseBtn").click(); }
+  else if (e.key === "n" || e.key === "N"){ e.preventDefault(); $("parkInput").focus(); }
+  else if (e.key === "d" || e.key === "D"){ e.preventDefault(); openDistract(); }
+  else if (/^[1-9]$/.test(e.key)){ toggleStep(+e.key - 1); }
+  else return;
+  track("shortcut");
+});
+
+/* ---------- running session ---------- */
+let run = null, ticker = null;
+const CIRC = 326.73;
+let audioCtx = null;
+function chime(){
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = 660; o.type = "sine";
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.9);
+    o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 1);
+  } catch(e){}
+}
+function nextCheckDelay(){ return (3 + Math.random() * 6) * 60000; } // 3–9 min, unpredictable
+
+$("startBtn").onclick = () => {
+  const goal = $("goal").value.trim();
+  if (!goal){ $("goal").focus(); $("goal").placeholder = "Write one specific thing first"; return; }
+  chime(); // unlocks audio from this click
+  const now = Date.now();
+  track("session_started"); if (minutes === 5) track("just_start");
+  run = { id: "s" + now, goal, energy, plannedMin: minutes, start: now, endAt: now + minutes*60000, totalMs: minutes*60000,
+          paused: false, pausedLeft: 0, parked: [], distractions: [], checks:{yes:0,no:0},
+          randomChecks: $("randomChecks").checked, nextCheck: now + nextCheckDelay(), extended: false, reviewing: false,
+          steps: setupSteps.map(t => ({ text: t, done: false })),
+          study: !!sampler && $("studyMode").checked, captures: [], lastCapture: null, quiz: null };
+  $("runGoal").textContent = goal;
+  $("pauseBtn").textContent = "Pause";
+  renderRunSteps(-1);
+  $("parkList").innerHTML = ""; $("distractCount").textContent = "";
+  $("studyBox").hidden = !run.study;
+  $("captureNudge").hidden = true;
+  $("coachTip").hidden = state.sessions.length > 0;
+  renderNotes();
+  if (run.study) track("study_session");
+  showTab("focus");
+  ticker = setInterval(tick, 1000); tick();
+  publishPresence();
+};
+
+function remaining(){ return run.paused ? run.pausedLeft : Math.max(0, run.endAt - Date.now()); }
+function fmt(ms){ const s = Math.ceil(ms/1000); return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0"); }
+function tick(){
+  if (!run || run.reviewing) return;
+  const left = remaining();
+  $("clock").textContent = fmt(left);
+  $("ring").style.strokeDashoffset = String(CIRC * (1 - left / run.totalMs));
+  $("clockSub").textContent = run.paused ? "paused" : "remaining";
+  if (run.paused) return;
+  studyNudge();
+  if (run.randomChecks && Date.now() >= run.nextCheck && left > 60000 && !anyModalOpen()){
+    run.nextCheck = Date.now() + nextCheckDelay();
+    $("mc-goal").textContent = run.goal;
+    chime(); openModal("m-check");
+  }
+  if (left <= 0){
+    chime();
+    if (run.plannedMin === 5 && !run.extended){ openModal("m-extend"); run.paused = true; run.pausedLeft = 0; return; }
+    finish();
+  }
+}
+$("pauseBtn").onclick = () => {
+  if (!run) return;
+  if (run.paused){ run.endAt = Date.now() + run.pausedLeft; run.paused = false; $("pauseBtn").textContent = "Pause"; }
+  else { run.pausedLeft = remaining(); run.paused = true; $("pauseBtn").textContent = "Resume"; }
+  tick(); publishPresence();
+};
+$("endBtn").onclick = () => finish();
+
+function addPark(){
+  const v = $("parkInput").value.trim(); if (!v) return;
+  run.parked.push({ id: "p" + Date.now(), text: v, keep: true }); track("thought_parked");
+  $("parkInput").value = "";
+  $("parkList").innerHTML = run.parked.map(p => `<li><span>${esc(p.text)}</span></li>`).join("");
+}
+$("parkBtn").onclick = addPark;
+$("parkInput").addEventListener("keydown", e => { if (e.key === "Enter"){ e.preventDefault(); addPark(); } });
+
+/* modals */
+function anyModalOpen(){ return document.querySelector(".overlay:not([hidden])"); }
+function openModal(id){ $(id).hidden = false; const b = $(id).querySelector("button"); b && b.focus(); }
+function closeModal(id){ $(id).hidden = true; }
+$("mc-yes").onclick = () => { run.checks.yes++; track("checkin_yes"); closeModal("m-check"); };
+$("mc-no").onclick = () => { run.checks.no++; track("checkin_no"); closeModal("m-check"); openDistract(); };
+
+$("causeChips").innerHTML = CAUSES.map(([k,n]) => `<button class="chip" data-c="${k}">${n}</button>`).join("");
+$("distractedBtn").onclick = () => openDistract();
+function openDistract(){
+  $("md-plan").hidden = true; $("md-back").hidden = true; $("md-cancel").textContent = "Cancel";
+  $("causeChips").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed","false"));
+  openModal("m-distract");
+}
+$("causeChips").querySelectorAll(".chip").forEach(c => c.onclick = () => {
+  if (!$("md-back").hidden) return; // already logged
+  c.setAttribute("aria-pressed","true");
+  run.distractions.push({ t: Date.now(), cause: c.dataset.c }); track("distraction_logged");
+  $("md-plantext").textContent = state.plans[c.dataset.c] || DEFAULT_PLANS[c.dataset.c];
+  $("md-plan").hidden = false; $("md-back").hidden = false; $("md-cancel").hidden = true;
+  $("md-back").focus();
+  const n = run.distractions.length;
+  $("distractCount").textContent = n + (n === 1 ? " distraction logged" : " distractions logged");
+});
+$("md-back").onclick = () => { closeModal("m-distract"); $("md-cancel").hidden = false; };
+$("md-cancel").onclick = () => closeModal("m-distract");
+$("mx-yes").onclick = () => {
+  closeModal("m-extend"); run.extended = true; run.paused = false; track("extended");
+  run.endAt = Date.now() + 10*60000; run.totalMs = 10*60000; run.plannedMin = 15; tick(); publishPresence();
+};
+$("mx-no").onclick = () => { closeModal("m-extend"); finish(); };
+
+/* ---------- review ---------- */
+let outcome = null;
+function finish(){
+  if (!run) return;
+  clearInterval(ticker);
+  const elapsed = run.totalMs - remaining() + (run.extended ? 5*60000 : 0);
+  run.actualMin = Math.max(1, Math.round(elapsed / 60000));
+  run.reviewing = true; outcome = null;
+  document.querySelectorAll(".overlay").forEach(o => o.hidden = true);
+  $("outcomeChips").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed","false"));
+  const d = run.distractions.length, ck = run.checks.yes + run.checks.no;
+  $("reviewSummary").textContent = `${run.actualMin} min on "${run.goal}". ${d} distraction${d===1?"":"s"} logged` +
+    (ck ? `, on task at ${run.checks.yes} of ${ck} check-ins.` : ".");
+  renderSort();
+  const notes = run.study ? doneNotes(run.captures) : [];
+  const bulletCount = notes.reduce((a, n) => a + n.bullets.length, 0);
+  $("quizBox").hidden = bulletCount < 2;
+  $("quizStart").hidden = false;
+  $("quizArea").innerHTML = "";
+  $("quizIntro").textContent = `${bulletCount >= 6 ? 5 : 3} questions from your ${bulletCount} notes. Each right answer earns 2 XP.`;
+  showTab("focus");
+  publishPresence();
+}
+chipGroup($("outcomeChips"), "o", v => outcome = v);
+function renderSort(){
+  $("sortBox").hidden = !run.parked.length;
+  $("sortList").innerHTML = run.parked.map(p => `<li><span>${esc(p.text)}</span>
+    <span class="chips"><button class="chip" data-id="${p.id}" data-k="1" aria-pressed="${p.keep}">Keep as to-do</button>
+    <button class="chip" data-id="${p.id}" data-k="0" aria-pressed="${!p.keep}">Drop</button></span></li>`).join("");
+  $("sortList").querySelectorAll(".chip").forEach(c => c.onclick = () => {
+    run.parked.find(p => p.id === c.dataset.id).keep = c.dataset.k === "1"; renderSort();
+  });
+}
+$("saveBtn").onclick = () => {
+  const r = run;
+  state.sessions.push({ id:r.id, goal:r.goal, start:r.start, plannedMin:r.plannedMin, actualMin:r.actualMin,
+    energy:r.energy, outcome: outcome || "unsaid", stepsDone: r.steps.filter(x => x.done).length, checks:r.checks, distractions:r.distractions,
+    quiz: r.quiz || null });
+  if (r.study){
+    const notes = doneNotes(r.captures);
+    if (notes.length){ study.items.push({ id: r.id, t: r.start, goal: r.goal, notes, quiz: r.quiz || null }); saveStudy(); }
+    r.captures.forEach(c => { if (c.thumb) URL.revokeObjectURL(c.thumb); });
+  }
+  r.parked.filter(p => p.keep).forEach(p => state.todos.push({ id:p.id, text:p.text, done:false }));
+  track("session_saved"); if (outcome === "yes") track("goal_finished");
+  const gain = sessionXP(r, outcome), before = levelOf(state.xp || 0);
+  state.xp = (state.xp || 0) + gain;
+  const leveledUp = levelOf(state.xp) > before;
+  save();
+  renderLevel();
+  run = null;
+  playSound("off");
+  $("soundChips").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.s === "off"));
+  publishPresence();
+  startBreak(gain, leveledUp, outcome);
+  if (outcome === "yes" || leveledUp) burst();
+};
+
+/* ---------- patterns ---------- */
+function sampleSessions(){
+  // Deterministic example history: ~6 months of a student slowly getting better at focusing.
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const out = [], day = 86400000, base = new Date(); base.setHours(0,0,0,0);
+  const causes = ["phone","phone","phone","stuck","stuck","bored","web","web","person","hungry","noise"];
+  for (let d = 180; d >= 0; d--){
+    const progress = 1 - d/180;
+    if (rnd() < 0.25 - progress*0.1) continue; // skipped day
+    const n = 1 + Math.floor(rnd() * (1.5 + progress*2));
+    for (let k = 0; k < n; k++){
+      const h = [9,10,14,15,16,20][Math.floor(rnd()*6)];
+      const start = base.getTime() - d*day + h*3600000 + Math.floor(rnd()*40)*60000;
+      if (start > Date.now()) continue;
+      const m = [15,25,25,25,45][Math.floor(rnd()*5)];
+      const r = rnd() + progress*0.35 + (h < 12 ? 0.15 : 0);
+      const o = r > 0.75 ? "yes" : r > 0.45 ? "partly" : "no";
+      const dn = Math.floor(rnd() * (4 - progress*2.5) + (h >= 14 && h <= 16 ? 1 : 0));
+      const ck = 2 + Math.floor(rnd()*3), yes = Math.min(ck, Math.round(ck * (0.45 + progress*0.4 + rnd()*0.2)));
+      out.push({ id:"x"+d+"-"+k, goal:"Example session", start, plannedMin:m, actualMin:m, energy:"ok", outcome:o, stepsDone: Math.floor(rnd()*3),
+        checks:{yes, no:ck-yes}, distractions: Array.from({length:dn}, (_,j) => ({ t:start + (j+1)*7*60000, cause:causes[Math.floor(rnd()*causes.length)] })) });
+    }
+  }
+  return out;
+}
+
+/* ---------- charts (Health / Screen Time style) ---------- */
+let range = "W";
+try { range = localStorage.getItem("tether-range") || "W"; } catch(e){}
+document.querySelectorAll("#rangeSeg button").forEach(b => {
+  b.setAttribute("aria-pressed", b.dataset.r === range);
+  b.onclick = () => {
+    range = b.dataset.r; track("range_changed");
+    try { localStorage.setItem("tether-range", range); } catch(e){}
+    document.querySelectorAll("#rangeSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    renderCharts(currentSessions);
+  };
+});
+$("tableToggle").onclick = () => {
+  const open = $("focusTable").hidden;
+  if (open) track("table_opened");
+  $("focusTable").hidden = !open;
+  $("tableToggle").setAttribute("aria-expanded", open);
+  $("tableToggle").textContent = open ? "Hide table" : "Show as table";
+};
+let currentSessions = [];
+const DAY = 86400000;
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const WD = ["S","M","T","W","T","F","S"], WDL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function xpOf(s){ return s.actualMin + (s.outcome === "yes" ? 20 : s.outcome === "partly" ? 10 : 0) + 5*(s.stepsDone||0) + 3*s.checks.yes + 2*((s.quiz && s.quiz.score) || 0); }
+function fmtMin(m){ m = Math.round(m); return m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`; }
+function buckets(sessions){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const out = [];
+  if (range === "6M"){
+    const start = new Date(today); start.setDate(start.getDate() - start.getDay() - 25*7); // 26 weeks, Sunday-aligned
+    for (let i = 0; i < 26; i++){ const s = new Date(start); s.setDate(s.getDate() + i*7); const e = new Date(s); e.setDate(e.getDate()+7); out.push({ s:+s, e:+e, days:7 }); }
+  } else {
+    const n = range === "W" ? 7 : 30;
+    for (let i = n-1; i >= 0; i--){ const s = new Date(today); s.setDate(s.getDate()-i); const e = new Date(s); e.setDate(e.getDate()+1); out.push({ s:+s, e:+e, days:1 }); }
+  }
+  const sorted = [...sessions].sort((a,b) => a.start - b.start);
+  let xpBefore = sorted.filter(x => x.start < out[0].s).reduce((a,x) => a + xpOf(x), 0);
+  out.forEach((b,i) => {
+    const ss = sorted.filter(x => x.start >= b.s && x.start < b.e);
+    b.focus = ss.reduce((a,x) => a + x.actualMin, 0);
+    b.focusPerDay = b.focus / b.days;
+    b.sessions = ss.length;
+    b.yes = ss.reduce((a,x) => a + x.checks.yes, 0);
+    b.checks = ss.reduce((a,x) => a + x.checks.yes + x.checks.no, 0);
+    b.ontask = b.checks ? 100 * b.yes / b.checks : null;
+    b.dist = ss.reduce((a,x) => a + x.distractions.length, 0);
+    b.finished = ss.filter(x => x.outcome === "yes").length;
+    xpBefore += ss.reduce((a,x) => a + xpOf(x), 0);
+    b.xp = xpBefore;
+    const d = new Date(b.s);
+    b.tick = range === "W" ? WD[d.getDay()] : range === "M" ? (i % 7 === 0 ? `${MON[d.getMonth()]} ${d.getDate()}` : "")
+      : ((i === 0 || new Date(out[i-1].s).getMonth() !== d.getMonth()) ? MON[d.getMonth()] : "");
+    b.name = range === "6M" ? `Week of ${MON[d.getMonth()]} ${d.getDate()}` : `${WDL[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`;
+  });
+  return out;
+}
+function niceMax(v){ if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1,2,2.5,5,10]) if (m*p >= v) return m*p; return 10*p; }
+
+// one chart builder: bars or line/area, single series, hover tooltip, y labels on the right like Apple Health
+function drawChart(el, data, o){
+  const W = Math.max(240, el.clientWidth || 300), H = o.h || 170, R = 34, T = 8, B = 20;
+  const pw = W - R, ph = H - T - B;
+  const vals = data.map(o.value).filter(v => v !== null);
+  const max = o.max || niceMax(Math.max(0, ...vals) * 1.05);
+  const y = v => T + ph - (v / max) * ph;
+  const step = pw / data.length;
+  const color = `var(${o.color})`;
+  let g = "";
+  [0, max/2, max].forEach(t => {
+    g += `<line x1="0" x2="${pw}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)" stroke-width="1" ${t ? 'stroke-dasharray="2 3"' : ""}/>`;
+    g += `<text x="${pw + 6}" y="${y(t) + 4}">${o.axis(t)}</text>`;
+  });
+  data.forEach((d,i) => { if (d.tick) g += `<text x="${i*step + (o.type === "bar" ? 2 : step/2)}" y="${H - 4}">${d.tick}</text>`; });
+  let marks = "";
+  if (o.type === "bar"){
+    const bw = Math.max(2, Math.min(28, step - (data.length > 14 ? 2 : 6)));
+    data.forEach((d,i) => {
+      const v = o.value(d) || 0, x = i*step + (step - bw)/2, top = y(v), h = T + ph - top, r = Math.min(4, bw/2, h);
+      if (v > 0) marks += `<path data-i="${i}" class="mk" fill="${color}" d="M${x},${T+ph} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${T+ph} Z"/>`;
+    });
+    if (o.avg != null && o.avg > 0) marks += `<line x1="0" x2="${pw}" y1="${y(o.avg)}" y2="${y(o.avg)}" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${pw + 6}" y="${y(o.avg) + 4}" style="fill:var(--good);font-weight:600">avg</text>`;
+  } else {
+    const pts = data.map((d,i) => ({ i, x: i*step + step/2, v: o.value(d) })).filter(p => p.v !== null);
+    if (pts.length){
+      const line = pts.map((p,k) => `${k ? "L" : "M"}${p.x},${y(p.v)}`).join(" ");
+      if (o.area) marks += `<path d="${line} L${pts[pts.length-1].x},${T+ph} L${pts[0].x},${T+ph} Z" fill="${color}" opacity=".15"/>`;
+      marks += `<path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      const last = pts[pts.length-1];
+      marks += `<circle cx="${last.x}" cy="${y(last.v)}" r="4" fill="${color}" stroke="var(--surface)" stroke-width="2"/>`;
+    }
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}">${g}${marks}<line class="cross" x1="0" x2="0" y1="${T}" y2="${T+ph}" stroke="var(--faint)" stroke-width="1" visibility="hidden"/><circle class="dot" r="5" fill="${color}" stroke="var(--surface)" stroke-width="2" visibility="hidden"/><rect x="0" y="0" width="${pw}" height="${H}" fill="transparent" class="hit"/></svg><div class="tip" hidden></div>`;
+  const svg = el.querySelector("svg"), tip = el.querySelector(".tip"), cross = el.querySelector(".cross"), dot = el.querySelector(".dot");
+  const move = ev => {
+    const rect = svg.getBoundingClientRect(), px = (ev.clientX - rect.left) * (W / rect.width);
+    const i = Math.max(0, Math.min(data.length - 1, Math.floor(px / step))), d = data[i], v = o.value(d);
+    const cx = i*step + step/2;
+    tip.hidden = false;
+    tip.innerHTML = `<b>${v === null ? "No check-ins" : o.tip(v)}</b>${esc(d.name)}`;
+    tip.style.left = Math.max(60, Math.min(rect.width - 60, cx * rect.width / W)) + "px";
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("visibility", "visible");
+    if (o.type !== "bar" && v !== null){ dot.setAttribute("cx", cx); dot.setAttribute("cy", y(v)); dot.setAttribute("visibility", "visible"); } else dot.setAttribute("visibility", "hidden");
+    el.querySelectorAll(".mk").forEach(m => m.style.opacity = +m.dataset.i === i ? 1 : .35);
+  };
+  const leave = () => { tip.hidden = true; cross.setAttribute("visibility","hidden"); dot.setAttribute("visibility","hidden"); el.querySelectorAll(".mk").forEach(m => m.style.opacity = 1); };
+  svg.addEventListener("pointermove", move);
+  svg.addEventListener("pointerdown", move);
+  svg.addEventListener("pointerleave", leave);
+}
+function renderCharts(sessions){
+  const data = buckets(sessions);
+  const totalFocus = data.reduce((a,b) => a + b.focus, 0), totalDays = data.reduce((a,b) => a + b.days, 0);
+  const avgDay = totalFocus / totalDays;
+  $("focusHero").innerHTML = avgDay >= 60 ? `${Math.floor(avgDay/60)}<small>h</small> ${Math.round(avgDay%60)}<small>m</small>` : `${Math.round(avgDay)}<small>m</small>`;
+  $("focusHeroLabel").textContent = range === "6M" ? "Daily average (by week)" : "Daily average";
+  const a = new Date(data[0].s), z = new Date(data[data.length-1].e - 1);
+  $("focusRange").textContent = `${MON[a.getMonth()]} ${a.getDate()} – ${MON[z.getMonth()]} ${z.getDate()} · ${fmtMin(totalFocus)} total`;
+  drawChart($("chFocus"), data, { type:"bar", color:"--accent", value: b => b.focusPerDay, avg: avgDay, h: 200,
+    axis: t => t ? fmtMin(t) : "0", tip: v => fmtMin(v) + (range === "6M" ? " / day" : "") });
+
+  const yes = data.reduce((a,b) => a + b.yes, 0), ck = data.reduce((a,b) => a + b.checks, 0);
+  $("ontaskHero").innerHTML = ck ? `${Math.round(100*yes/ck)}<small>%</small>` : "–";
+  drawChart($("chOntask"), data, { type:"line", color:"--good", value: b => b.ontask, max: 100, h: 130,
+    axis: t => Math.round(t) + "%", tip: v => Math.round(v) + "% on task" });
+
+  const dist = data.reduce((a,b) => a + b.dist, 0);
+  $("distHero").innerHTML = `${dist}<small> logged</small>`;
+  drawChart($("chDist"), data, { type:"bar", color:"--warn", value: b => b.dist, h: 130,
+    axis: t => String(Math.round(t)), tip: v => `${v} distraction${v === 1 ? "" : "s"}` });
+
+  $("xpHero").innerHTML = `${data[data.length-1].xp.toLocaleString()}<small> XP</small>`;
+  drawChart($("chXP"), data, { type:"line", area:true, color:"--purple", value: b => b.xp, h: 130,
+    axis: t => t >= 1000 ? (t/1000).toFixed(t % 1000 ? 1 : 0) + "k" : String(Math.round(t)), tip: v => `${v.toLocaleString()} XP` });
+
+  $("focusTable").innerHTML = `<table><thead><tr><th>${range === "6M" ? "Week" : "Day"}</th><th>Focus</th><th>Sessions</th><th>Goals done</th><th>On task</th><th>Distractions</th></tr></thead><tbody>` +
+    data.slice().reverse().map(b => `<tr><td>${esc(b.name)}</td><td>${fmtMin(b.focus)}</td><td>${b.sessions}</td><td>${b.finished}</td><td>${b.ontask === null ? "–" : Math.round(b.ontask) + "%"}</td><td>${b.dist}</td></tr>`).join("") + `</tbody></table>`;
+}
+let resizeT = null;
+addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (tab === "patterns") renderCharts(currentSessions); }, 150); });
+function renderPatterns(){
+  const real = state.sessions.length > 0;
+  $("sampleBanner").hidden = real;
+  const sessions = real ? state.sessions : sampleSessions();
+  currentSessions = sessions;
+  renderCharts(sessions);
+  const weekAgo = Date.now() - 7*86400000;
+  const wk = sessions.filter(s => s.start >= weekAgo);
+  const mins = wk.reduce((a,s) => a + s.actualMin, 0);
+  const yes = wk.reduce((a,s) => a + s.checks.yes, 0), ck = wk.reduce((a,s) => a + s.checks.yes + s.checks.no, 0);
+  const finished = wk.filter(s => s.outcome === "yes").length;
+  // streak of consecutive days with a session, counting back from today
+  const days = new Set(sessions.map(s => new Date(s.start).toDateString()));
+  let streak = 0; const d = new Date();
+  while (days.has(d.toDateString())){ streak++; d.setDate(d.getDate()-1); }
+  $("stats").innerHTML = [
+    ["Focus time", mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`],
+    ["Sessions", wk.length],
+    ["Goals finished", wk.length ? `${finished}/${wk.length}` : "–"],
+    ["On task at check-ins", ck ? Math.round(100*yes/ck) + "%" : "–"],
+    ["Day streak", streak]
+  ].map(([k,v]) => `<div class="stat"><span class="label">${k}</span><b>${v}</b></div>`).join("");
+
+  const all = sessions.flatMap(s => s.distractions);
+  const byCause = {}; all.forEach(x => byCause[x.cause] = (byCause[x.cause]||0) + 1);
+  const ranked = CAUSES.map(([k]) => [k, byCause[k]||0]).filter(([,n]) => n).sort((a,b) => b[1]-a[1]);
+  const maxC = Math.max(1, ...ranked.map(r => r[1]));
+  $("causeBars").innerHTML = ranked.length ? ranked.map(([k,n]) =>
+    `<div class="bar"><span>${CAUSE_NAME[k]}</span><div class="track"><div class="fill" style="width:${100*n/maxC}%"></div></div><span class="n">${n}</span></div>`).join("")
+    : `<p class="hint">No distractions logged yet. Tap "I got pulled away" during a session.</p>`;
+
+  const hours = Array(24).fill(0); all.forEach(x => hours[new Date(x.t).getHours()]++);
+  const maxH = Math.max(1, ...hours), peak = hours.indexOf(Math.max(...hours));
+  $("hourBars").innerHTML = hours.map((n,h) => `<div class="${n && h===peak ? "peak" : ""}" style="height:${100*n/maxH}%" title="${hourName(h)}: ${n}"></div>`).join("");
+
+  // insight: worst hour + top cause + best-finishing energy
+  const parts = [];
+  if (ranked.length) parts.push(`Your biggest pull is <b>${CAUSE_NAME[ranked[0][0]].toLowerCase()}</b>, and it peaks around <b>${hourName(peak)}</b>. Check your plan for it below.`);
+  const early = sessions.filter(s => new Date(s.start).getHours() < 12), late = sessions.filter(s => new Date(s.start).getHours() >= 12);
+  const rate = a => a.length ? a.filter(s => s.outcome === "yes").length / a.length : null;
+  const re = rate(early), rl = rate(late);
+  if (re !== null && rl !== null && re !== rl) parts.push(`You finish goals more often in the <b>${re > rl ? "morning" : "afternoon"}</b>. Save hard tasks for then.`);
+  $("insight").innerHTML = parts.join(" ") || "Do a few sessions and Tether will spot your patterns.";
+
+  $("plans").innerHTML = CAUSES.map(([k,n]) => `<div class="planrow"><label for="plan-${k}" style="font-weight:700;font-size:14px">When ${esc(n.toLowerCase())}</label>
+    <input type="text" id="plan-${k}" data-k="${k}" value="${esc(state.plans[k] || "")}"></div>`).join("");
+  $("plans").querySelectorAll("input").forEach(i => i.onchange = () => { state.plans[i.dataset.k] = i.value.trim() || DEFAULT_PLANS[i.dataset.k]; save(); track("plan_edited"); });
+  renderTodos();
+  renderStudy();
+}
+function hourName(h){ return h === 0 ? "12am" : h < 12 ? h + "am" : h === 12 ? "12pm" : (h-12) + "pm"; }
+function renderTodos(){
+  const t = state.todos;
+  $("todoList").innerHTML = t.length ? t.map(x => `<li><label class="row" style="gap:10px;flex-wrap:nowrap"><input type="checkbox" data-id="${x.id}" ${x.done?"checked":""}><span class="${x.done?"done":""}">${esc(x.text)}</span></label>
+    <button class="btn small ghost" data-del="${x.id}">Remove</button></li>`).join("")
+    : `<li><span class="muted">Nothing parked. Thoughts you keep during a session show up here.</span></li>`;
+  $("todoList").querySelectorAll("input[type=checkbox]").forEach(c => c.onchange = () => { t.find(x => x.id === c.dataset.id).done = c.checked; if (c.checked) track("todo_done"); save(); renderTodos(); });
+  $("todoList").querySelectorAll("[data-del]").forEach(b => b.onclick = () => { state.todos = t.filter(x => x.id !== b.dataset.del); save(); renderTodos(); });
+}
+
+/* ---------- room (live co-working) ---------- */
+let room = null, users = null;
+function myPeer(){ const me = room && room.peers().find(p => p.isMe); return me ? me.peer : null; }
+function publishPresence(){
+  if (!room) return;
+  const status = !run ? "idle" : run.reviewing ? "break" : run.paused ? "break" : "focus";
+  room.presence({ status, goal: run && !run.reviewing ? run.goal.slice(0,140) : null,
+    endAt: run && !run.paused && !run.reviewing ? run.endAt : null }).catch(() => {});
+}
+async function renderRoom(){
+  const el = $("people");
+  if (!room){ el.innerHTML = `<p class="hint">The study room is coming soon to this version of Tether.</p>`; return; }
+  const peers = room.peers().filter(p => p.kind === "viewer");
+  $("roomCount").textContent = peers.length > 1 ? `· ${peers.length}` : "";
+  const ids = [...new Set(peers.map(p => p.by).filter(Boolean))];
+  let profs = {};
+  if (users && ids.length){ try { profs = await users.profiles(ids); } catch(e){} }
+  el.innerHTML = "";
+  peers.sort((a,b) => (b.isMe - a.isMe)).forEach(p => {
+    const pr = p.presence || {}, st = pr.status || "idle";
+    const left = typeof pr.endAt === "number" ? Math.max(0, pr.endAt - Date.now()) : null;
+    const div = document.createElement("div");
+    div.className = "person" + (p.isMe ? " me" : "");
+    const name = document.createElement("h3");
+    name.textContent = (p.isMe ? "You" : ((p.by && profs[p.by] && profs[p.by].name) || "Someone")) + (p.guest ? " (guest)" : "");
+    const pill = document.createElement("span");
+    pill.className = "pill " + (st === "focus" ? "focus" : st === "break" ? "break" : "");
+    pill.textContent = st === "focus" ? (left !== null ? `Focusing · ${fmt(left)} left` : "Focusing") : st === "break" ? "On a break" : "Not started";
+    const goal = document.createElement("p");
+    goal.className = "hint"; goal.textContent = typeof pr.goal === "string" && pr.goal ? pr.goal : "No goal set yet";
+    div.append(name, pill, goal);
+    if (!p.isMe){
+      const cheer = document.createElement("button");
+      cheer.className = "btn small ghost"; cheer.textContent = "Send a cheer";
+      cheer.onclick = () => {
+        room.emit("cheer", { to: p.peer }).then(() => { toast("Cheer sent"); track("cheer_sent"); }).catch(() => toast("Cheers need edit access to this page"));
+      };
+      div.append(cheer);
+    }
+    el.append(div);
+  });
+  if (peers.length <= 1){
+    const p = document.createElement("p"); p.className = "hint";
+    p.textContent = "Just you for now. Share this page's link with a friend or classmate, and you'll see each other's goals and timers here.";
+    el.append(p);
+  }
+}
+setInterval(() => { if (tab === "room" && room) renderRoom(); }, 5000);
+
+/* ---------- study mode: notes from what you show Tether, then a quiz ---------- */
+let study = { items: [] };   // past study notes, newest last
+let studyDoc = null, studySaveTimer = null, canSeeImages = false;
+try { const s = JSON.parse(localStorage.getItem("tether-study") || "null"); if (s && Array.isArray(s.items)) study = s; } catch(e){}
+function saveStudy(){
+  study.items = study.items.slice(-60);
+  try { localStorage.setItem("tether-study", JSON.stringify(study)); } catch(e){}
+  if (!studyDoc) return;
+  clearTimeout(studySaveTimer);
+  studySaveTimer = setTimeout(() => { studyDoc.set(JSON.parse(JSON.stringify(study))).catch(() => {}); }, 600);
+}
+const onMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+function updateStudyAffordances(){
+  $("studyRow").hidden = !sampler;
+  $("shotBtn").hidden = !canSeeImages;
+  $("shotHow").textContent = !canSeeImages
+    ? "Paste a paragraph you're reading below, and Gemini turns it into notes."
+    : onMac ? "Press ⌘⇧⌃4 and drag over what you're working on, then press ⌘V here. Or drop an image."
+            : "Press Windows+Shift+S and drag over what you're working on, then press Ctrl+V here. Or drop an image.";
+}
+function claudeError(e){
+  const code = e && e.code;
+  return code === "no_key" ? "Add your free Gemini key in AI settings first."
+    : code === "bad_key" ? "Gemini didn't accept your key. Check it in AI settings."
+    : code === "not_granted" ? "Gemini isn't allowed on this page. Turn it on in the page's permissions."
+    : code === "rate_limited" ? "Too many requests right now. Try again in a minute."
+    : code === "image_rejected" ? "That image couldn't be read. Try a PNG or JPEG screenshot."
+    : "Gemini couldn't read that one. Try again.";
+}
+async function addCapture(kind, payload){
+  if (!run || run.reviewing || !run.study || !sampler) return;
+  const item = { id: "c" + Date.now() + Math.random().toString(36).slice(2, 6), kind, status: "reading", topic: "", bullets: [] };
+  if (kind === "image") item.thumb = URL.createObjectURL(payload);
+  run.captures.push(item);
+  run.lastCapture = Date.now();
+  renderNotes();
+  track(kind === "image" ? "study_image" : "study_text");
+  const what = kind === "image"
+    ? "The attached image is a screenshot of what they're working on right now."
+    : "Here is text they're reading or writing right now:\n\n" + payload.slice(0, 8000);
+  try {
+    const out = await sampler.json(
+      `A student is in a focus session. Their goal: "${run.goal}".\n${what}\n\n` +
+      "Write short study notes about the subject matter only: key facts, definitions, steps or ideas worth remembering. " +
+      "Ignore the app, menus, notifications and anything that isn't study material. " +
+      "If there's nothing to learn from it, return an empty bullets list.\n\n" +
+      'Reply with only JSON: {"topic": "topic in under 6 words", "bullets": ["one idea in under 25 words"]} with 2 to 5 bullets.',
+      kind === "image" ? { images: [payload] } : {});
+    item.topic = typeof (out && out.topic) === "string" ? out.topic.slice(0, 80) : "";
+    item.bullets = Array.isArray(out && out.bullets)
+      ? out.bullets.filter(b => typeof b === "string" && b.trim()).slice(0, 5).map(b => b.trim().slice(0, 240)) : [];
+    item.status = item.bullets.length ? "done" : "empty";
+  } catch(e){
+    item.status = "error";
+    item.error = claudeError(e);
+  }
+  renderNotes();
+}
+function doneNotes(captures){ return captures.filter(c => c.status === "done").map(c => ({ topic: c.topic, bullets: c.bullets })); }
+function renderNotes(){
+  if (!run) return;
+  const notes = doneNotes(run.captures), count = notes.reduce((a, n) => a + n.bullets.length, 0);
+  $("noteCount").textContent = count ? `${count} note${count === 1 ? "" : "s"}` : "";
+  const el = $("notesList");
+  el.innerHTML = "";
+  run.captures.slice().reverse().forEach(c => {
+    const li = document.createElement("li"); li.className = "note";
+    let thumb;
+    if (c.kind === "image"){ thumb = document.createElement("img"); thumb.src = c.thumb; thumb.alt = ""; }
+    else { thumb = document.createElement("div"); thumb.className = "txticon"; thumb.textContent = c.kind === "help" ? "Help" : "Text"; }
+    const body = document.createElement("div");
+    const h = document.createElement("h4");
+    h.textContent = c.status === "reading" ? "Reading…" : c.status === "error" ? "Couldn't read this"
+      : c.status === "empty" ? "Nothing to note" : (c.topic || "Notes");
+    body.append(h);
+    if (c.status === "done"){
+      const ul = document.createElement("ul");
+      c.bullets.forEach(b => { const x = document.createElement("li"); x.textContent = b; ul.append(x); });
+      body.append(ul);
+    } else if (c.status !== "reading"){
+      const p = document.createElement("p"); p.className = "hint";
+      p.textContent = c.status === "error" ? c.error : "Gemini didn't find study material here.";
+      body.append(p);
+    }
+    const del = document.createElement("button");
+    del.className = "x"; del.textContent = "×"; del.setAttribute("aria-label", "Remove these notes");
+    del.onclick = () => {
+      if (c.thumb) URL.revokeObjectURL(c.thumb);
+      run.captures = run.captures.filter(x => x !== c);
+      renderNotes();
+    };
+    li.append(thumb, body, del);
+    el.append(li);
+  });
+}
+function imageFiles(dt){
+  if (!dt) return [];
+  const fromItems = [...(dt.items || [])].filter(i => i.kind === "file" && i.type.startsWith("image/")).map(i => i.getAsFile()).filter(Boolean);
+  return fromItems.length ? fromItems : [...(dt.files || [])].filter(f => f.type.startsWith("image/"));
+}
+document.addEventListener("paste", e => {
+  if (!run || run.reviewing || !run.study || anyModalOpen() || tab !== "focus") return;
+  const imgs = imageFiles(e.clipboardData);
+  if (imgs.length && canSeeImages){ e.preventDefault(); imgs.slice(0, 3).forEach(f => addCapture("image", f)); return; }
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+  const text = (e.clipboardData && e.clipboardData.getData("text/plain") || "").trim();
+  if (!typing && text.length > 20){ e.preventDefault(); addCapture("text", text); }
+});
+// A file dropped outside the drop zone shouldn't make the browser open it.
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => e.preventDefault());
+const dz = $("dropZone");
+dz.addEventListener("dragover", e => { if (canSeeImages){ e.preventDefault(); dz.classList.add("over"); } });
+dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+dz.addEventListener("drop", e => {
+  dz.classList.remove("over");
+  const imgs = imageFiles(e.dataTransfer);
+  if (!imgs.length) return;
+  e.preventDefault();
+  imgs.slice(0, 3).forEach(f => addCapture("image", f));
+});
+$("shotBtn").onclick = () => $("shotInput").click();
+$("shotInput").onchange = () => { [...$("shotInput").files].slice(0, 3).forEach(f => addCapture("image", f)); $("shotInput").value = ""; };
+$("studyTextBtn").onclick = () => {
+  const t = $("studyText").value.trim();
+  if (!t) { $("studyText").focus(); return; }
+  $("studyText").value = "";
+  addCapture("text", t);
+};
+function studyNudge(){
+  if (!run || !run.study || run.paused) return;
+  const since = Date.now() - (run.lastCapture || run.start);
+  const due = since > (run.lastCapture ? 8 : 4) * 60000;
+  $("captureNudge").hidden = !due;
+  dz.classList.toggle("nudge", due);
+}
+
+/* quiz: built from notes, one question at a time */
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function el(tag, cls, text){ const x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+async function runQuiz(area, notes, onFinish){
+  area.innerHTML = "";
+  area.append(el("p", "hint", "Writing your quiz…"));
+  const bullets = notes.flatMap(n => n.bullets.map(b => (n.topic ? n.topic + ": " : "") + b));
+  const n = bullets.length >= 6 ? 5 : 3;
+  let qs = [];
+  try {
+    const out = await sampler.json(
+      `Write a ${n}-question multiple-choice quiz that checks understanding of these study notes. ` +
+      'Mix recall questions with "why" or "how" questions. Each question has exactly 4 options and exactly one correct option. ' +
+      "Use only facts from the notes. Keep questions under 30 words and options under 15 words.\n\nNotes:\n" +
+      bullets.map(b => "- " + b).join("\n").slice(0, 12000) +
+      '\n\nReply with only JSON: {"questions":[{"q":"question","options":["a","b","c","d"],"answer":0,"why":"one-sentence explanation"}]} where answer is the index of the correct option.',
+      { cache: false });
+    qs = (Array.isArray(out && out.questions) ? out.questions : [])
+      .filter(q => q && typeof q.q === "string" && Array.isArray(q.options) && q.options.length === 4
+        && q.options.every(o => typeof o === "string") && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 4)
+      .slice(0, n)
+      .map(q => { const order = shuffle([0, 1, 2, 3]); return { q: q.q, options: order.map(i => q.options[i]), answer: order.indexOf(q.answer), why: typeof q.why === "string" ? q.why : "" }; });
+  } catch(e){
+    area.innerHTML = "";
+    area.append(el("p", "hint", claudeError(e)));
+    const again = el("button", "btn small", "Try again"); again.onclick = () => runQuiz(area, notes, onFinish);
+    area.append(again);
+    return;
+  }
+  if (!qs.length){
+    area.innerHTML = "";
+    area.append(el("p", "hint", "Gemini couldn't make a quiz from these notes. Show Tether a few more things next time."));
+    return;
+  }
+  let i = 0, score = 0;
+  const show = () => {
+    area.innerHTML = "";
+    if (i >= qs.length){
+      area.append(el("span", "label", "Your score"), el("div", "score", `${score} of ${qs.length}`),
+        el("p", "muted", score === qs.length ? "Perfect. You really learned this." : score >= qs.length / 2 ? "Solid. Reread the notes you missed." : "Worth another look at your notes before you move on."));
+      onFinish(score, qs.length);
+      return;
+    }
+    const q = qs[i];
+    area.append(el("span", "hint", `Question ${i + 1} of ${qs.length}`), el("p", "quizq", q.q));
+    const opts = el("div", "opts");
+    const buttons = q.options.map((o, k) => {
+      const b = el("button", "opt", o);
+      b.onclick = () => {
+        buttons.forEach(x => x.disabled = true);
+        buttons[q.answer].classList.add("right");
+        if (k === q.answer){ score++; tinyChime(); } else b.classList.add("wrong");
+        if (q.why) area.append(el("p", "why", q.why));
+        const next = el("button", "btn primary small", i + 1 < qs.length ? "Next question" : "See score");
+        next.onclick = () => { i++; show(); };
+        area.append(next);
+        next.focus();
+      };
+      return b;
+    });
+    opts.append(...buttons);
+    area.append(opts);
+  };
+  show();
+}
+$("quizStart").onclick = () => {
+  if (!run) return;
+  $("quizStart").hidden = true;
+  track("quiz_taken");
+  runQuiz($("quizArea"), doneNotes(run.captures), (score, total) => { if (run) run.quiz = { score, total }; });
+};
+
+/* past study notes in Patterns */
+function renderStudy(){
+  const items = study.items.slice().reverse();
+  $("studyPanel").hidden = !items.length;
+  const list = $("studyList");
+  list.innerHTML = "";
+  items.forEach(item => {
+    const d = el("details", "studyitem");
+    const s = el("summary");
+    s.append(el("span", null, item.goal || "Study session"),
+      el("span", "hint", new Date(item.t).toLocaleDateString(undefined, { month: "short", day: "numeric" })));
+    const q = item.lastQuiz || item.quiz;
+    if (q) s.append(el("span", "pill " + (q.score / q.total >= 0.7 ? "focus" : "break"), `Quiz ${q.score}/${q.total}`));
+    d.append(s);
+    (item.notes || []).forEach((n, idx) => d.append(noteBlock(item, n, idx)));
+    const add = el("button", "btn ghost small", "Add a note");
+    add.onclick = () => { item.notes = item.notes || []; item.notes.push({ topic: "", bullets: [""], editing: true }); saveStudy(); renderStudy(); };
+    const copy = el("button", "btn ghost small", "Copy notes");
+    copy.onclick = () => {
+      const text = [item.goal, ""].concat(...(item.notes || []).map(n => [n.topic, ...n.bullets.map(b => "• " + b), ""])).join("\n");
+      navigator.clipboard.writeText(text).then(() => toast("Notes copied")).catch(() => toast("Couldn't copy. Select the notes and copy them instead."));
+    };
+    const tools = el("div", "row"); tools.append(add, copy);
+    d.append(tools);
+    if (sampler){
+      const again = el("button", "btn small", "Quiz me again");
+      again.onclick = () => {
+        track("quiz_retake");
+        openModal("m-quiz");
+        runQuiz($("mqArea"), item.notes || [], (score, total) => { item.lastQuiz = { score, total, t: Date.now() }; saveStudy(); renderStudy(); });
+      };
+      d.append(again);
+    }
+    list.append(d);
+  });
+}
+/* One note card in Patterns → Study notes: read, or edit every line. */
+function noteBlock(item, n, idx){
+  const box = el("div", "noteblock");
+  if (!n.editing){
+    const head = el("div", "row");
+    head.append(el("h4", null, (n.fromHelp ? "\u{1F4A1} " : "") + (n.topic || "Notes")));
+    const edit = el("button", "btn ghost small", "Edit");
+    edit.onclick = () => { n.editing = true; renderStudy(); keepOpen(item); };
+    head.append(edit);
+    const ul = el("ul");
+    (n.bullets || []).forEach(b => ul.append(el("li", null, b)));
+    box.append(head, ul);
+    return box;
+  }
+  const topic = el("input"); topic.type = "text"; topic.value = n.topic || ""; topic.placeholder = "Topic";
+  box.append(topic);
+  const lines = (n.bullets && n.bullets.length ? n.bullets : [""]).slice();
+  const linesBox = el("div", null); linesBox.style.cssText = "display:flex;flex-direction:column;gap:6px";
+  const drawLines = () => {
+    linesBox.innerHTML = "";
+    lines.forEach((t, i) => {
+      const row = el("div", "noteline");
+      const inp = el("input"); inp.type = "text"; inp.value = t; inp.placeholder = "Write a note";
+      inp.oninput = () => { lines[i] = inp.value; };
+      const del = el("button", "x", "×"); del.setAttribute("aria-label", "Delete this line");
+      del.onclick = () => { lines.splice(i, 1); drawLines(); };
+      row.append(inp, del); linesBox.append(row);
+    });
+  };
+  drawLines();
+  const actions = el("div", "row");
+  const addLine = el("button", "btn ghost small", "Add line"); addLine.onclick = () => { lines.push(""); drawLines(); };
+  const delCard = el("button", "btn ghost small", "Delete card");
+  delCard.onclick = () => { item.notes.splice(idx, 1); saveStudy(); renderStudy(); keepOpen(item); };
+  const done = el("button", "btn primary small", "Done");
+  done.onclick = () => {
+    n.topic = topic.value.trim();
+    n.bullets = lines.map(l => l.trim()).filter(Boolean);
+    delete n.editing;
+    if (!n.topic && !n.bullets.length) item.notes.splice(idx, 1);
+    saveStudy(); renderStudy(); keepOpen(item);
+  };
+  actions.append(addLine, delCard, done);
+  box.append(linesBox, actions);
+  return box;
+}
+/* Re-rendering closes the <details>; reopen the one being edited. */
+function keepOpen(item){
+  const i = study.items.slice().reverse().indexOf(item);
+  const d = $("studyList").children[i];
+  if (d) d.open = true;
+}
+$("mqClose").onclick = () => closeModal("m-quiz");
+
+/* ---------- first-time welcome ---------- */
+const WELCOME = [
+  { title: "Stay tethered to one thing",
+    text: "Say exactly what done looks like, start a timer, and Tether keeps you honest with quick \"Still on it?\" check-ins.",
+    art: '<svg class="art" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="64" r="40" fill="none" stroke="var(--fill)" stroke-width="12"/><circle cx="60" cy="64" r="40" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="190 252" transform="rotate(-62 60 64)"/><circle cx="60" cy="16" r="8" fill="var(--accent)"/></svg>' },
+  { title: "Park it, don't chase it",
+    text: "When a thought pops up, park it in one tap and deal with it later. When something pulls you away, log it and Tether shows your plan for getting back.",
+    art: '<svg class="art" viewBox="0 0 120 120" aria-hidden="true"><rect x="18" y="58" width="84" height="44" rx="12" fill="var(--fill)"/><path d="M18 74h26l6 10h20l6-10h26" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linejoin="round"/><path d="M60 14v38M46 40l14 14 14-14" fill="none" stroke="var(--warn)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+  { title: "Learn while you work",
+    text: "Turn on Study mode and show Tether what you're working on with a quick screenshot. Gemini writes notes and quizzes you at the end.",
+    art: '<svg class="art" viewBox="0 0 120 120" aria-hidden="true"><rect x="16" y="18" width="88" height="84" rx="14" fill="var(--fill)"/><rect x="30" y="36" width="44" height="7" rx="3.5" fill="var(--faint)"/><rect x="30" y="54" width="60" height="7" rx="3.5" fill="var(--faint)"/><rect x="30" y="72" width="34" height="7" rx="3.5" fill="var(--faint)"/><circle cx="86" cy="84" r="18" fill="var(--good)"/><path d="M78 84l6 6 11-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>' }
+];
+let welcomeStep = 0;
+function welcomeSeen(){ try { return localStorage.getItem("tether-welcomed") === "1"; } catch(e){ return false; } }
+function showWelcome(){
+  const w = WELCOME[welcomeStep];
+  $("mwArt").innerHTML = w.art;
+  $("mw-h").textContent = w.title;
+  $("mwText").textContent = w.text;
+  $("mwDots").querySelectorAll("i").forEach((d, i) => d.classList.toggle("on", i === welcomeStep));
+  const last = welcomeStep === WELCOME.length - 1;
+  $("mwNext").textContent = last ? "Try a 5-minute session" : "Next";
+  $("mwSkip").textContent = last ? "I'll look around" : "Skip";
+  $("m-welcome").hidden = false;
+  $("mwNext").focus();
+}
+function finishWelcome(tryIt){
+  closeModal("m-welcome");
+  try { localStorage.setItem("tether-welcomed", "1"); } catch(e){}
+  if (!state.welcomed){ state.welcomed = true; save(); }
+  track(tryIt ? "welcome_try" : "welcome_skip");
+  if (!tryIt) return;
+  showTab("focus");
+  const five = $("durChips").querySelector('[data-min="5"]');
+  if (five) five.click();
+  $("goal").focus();
+  $("goal").select();
+  toast("Write your goal, then press Start focusing");
+}
+$("mwNext").onclick = () => { if (welcomeStep < WELCOME.length - 1){ welcomeStep++; showWelcome(); } else finishWelcome(true); };
+$("mwSkip").onclick = () => finishWelcome(false);
+
+/* ---------- Snap a Problem: walk through a problem from a screenshot, plus chat ---------- */
+const HELP_GOAL = "Problems I got help with";
+const help = { image: null, url: null, problems: [], walk: null, revealed: 1, answerShown: false, msgs: [], stage: "idle", error: "", busy: false };
+const MIC_SVG = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+$("helpMic").innerHTML = MIC_SVG;
+$("helpHow").textContent = onMac
+  ? "Press ⌘⇧⌃4 and drag over the problem, then press ⌘V here."
+  : "Press Windows+Shift+S and drag over the problem, then press Ctrl+V here.";
+
+function helpLoad(file){
+  if (!sampler){ help.stage = "failed"; help.error = "Add your free Gemini key in AI settings to use Help."; renderHelp(); return; }
+  if (!canSeeImages){ help.stage = "failed"; help.error = "This view can't send pictures to Gemini. Type the problem in the box below instead."; renderHelp(); return; }
+  if (help.url) URL.revokeObjectURL(help.url);
+  Object.assign(help, { image: file, url: URL.createObjectURL(file), problems: [], walk: null, msgs: [], revealed: 1, answerShown: false, stage: "reading", error: "" });
+  track("help_snap");
+  renderHelp();
+  helpFindProblems();
+}
+async function helpFindProblems(){
+  try {
+    const out = await sampler.json(
+      "The image is a screenshot of a college student's homework or study material. List the separate numbered problems or questions in it. " +
+      'Reply with only JSON: {"problems":[{"number":3,"text":"the problem restated in under 20 words"}]}. If there is only one problem, list just that one.',
+      { images: [help.image] });
+    help.problems = (Array.isArray(out && out.problems) ? out.problems : [])
+      .filter(p => p && (typeof p.number === "number" || typeof p.number === "string") && typeof p.text === "string")
+      .map(p => ({ number: String(p.number).slice(0, 6), text: p.text.slice(0, 200) }));
+    if (help.problems.length >= 2){ help.stage = "choosing"; renderHelp(); }
+    else await helpSolve(null);
+  } catch(e){ help.stage = "failed"; help.error = claudeError(e); renderHelp(); }
+}
+async function helpSolve(request){
+  help.stage = "thinking"; help.walk = null; help.revealed = 1; help.answerShown = false;
+  renderHelp();
+  const ask = request ? `\nThe student asked: "${request}". Help with exactly that. If they named a problem number, solve only that problem, not the others.` : "";
+  try {
+    const out = await sampler.json(
+      "You are a patient tutor for a college student. The image is a screenshot of their homework." + ask +
+      (run && !run.reviewing ? `\nThey're working on: ${run.goal}` : "") +
+      "\nWalk through the problem one step at a time. Show the actual work (the numbers or algebra) in each step and explain why it works. Be accurate.\n" +
+      'Reply with only JSON: {"topic":"subject in under 6 words","problem":"the problem in one sentence","steps":[{"title":"under 8 words","detail":"1-3 sentences"}],"answer":"final answer or empty string","notes":["key idea worth remembering, under 25 words"]} with 2-8 steps and 1-4 notes.',
+      { images: [help.image], modelTier: "complex" });
+    const steps = (Array.isArray(out && out.steps) ? out.steps : []).filter(s => s && typeof s.title === "string" && typeof s.detail === "string").slice(0, 10);
+    if (!steps.length) throw { code: "no_steps" };
+    help.walk = {
+      topic: String(out.topic || "").slice(0, 80), problem: String(out.problem || "").slice(0, 400), steps,
+      answer: typeof out.answer === "string" ? out.answer.slice(0, 400) : "",
+      notes: (Array.isArray(out.notes) ? out.notes : []).filter(n => typeof n === "string" && n.trim()).slice(0, 4)
+    };
+    help.stage = "ready";
+    helpSaveNotes(help.walk);
+  } catch(e){
+    help.stage = "failed";
+    help.error = e && e.code === "no_steps" ? "Gemini couldn't work out steps for this one. Try snapping just the problem." : claudeError(e);
+  }
+  renderHelp();
+}
+/* The key ideas go into the running session's notes, or today's help page. */
+function helpSaveNotes(w){
+  if (!w.notes.length) return;
+  if (run && run.study && !run.reviewing){
+    run.captures.push({ id: "h" + Date.now(), kind: "help", status: "done", topic: w.topic, bullets: w.notes, fromHelp: true });
+    renderNotes();
+    help.savedTo = run.goal;
+    return;
+  }
+  const today = new Date().toDateString();
+  let page = study.items.find(i => i.goal === HELP_GOAL && new Date(i.t).toDateString() === today);
+  if (!page){ page = { id: "help-" + Date.now(), t: Date.now(), goal: HELP_GOAL, notes: [] }; study.items.push(page); }
+  page.notes.push({ topic: w.topic, bullets: w.notes, fromHelp: true });
+  saveStudy();
+  help.savedTo = HELP_GOAL;
+}
+async function helpAsk(text){
+  text = text.trim();
+  if (!text || help.busy) return;
+  if (!sampler){ help.msgs.push({ q: text, a: "Add your free Gemini key in AI settings to use Help." }); renderHelp(); return; }
+  if (help.stage === "choosing"){ helpSolve(text); return; }
+  track("help_chat");
+  const msg = { q: text, a: "" };
+  help.msgs.push(msg);
+  help.busy = true;
+  renderHelp();
+  const context = help.walk
+    ? `We're working on this problem: ${help.walk.problem}\nSteps so far:\n${help.walk.steps.map((s, i) => `${i + 1}. ${s.title}: ${s.detail}`).join("\n")}\nAnswer: ${help.walk.answer}`
+    : "There's no screenshot yet; answer the student's question directly.";
+  const turns = [{ role: "user", content: "You are a patient tutor for a college student. Answer clearly and briefly. For problems, show the work step by step and explain why. Be accurate.\n" + context }];
+  help.msgs.slice(0, -1).slice(-6).forEach(m => { turns.push({ role: "user", content: m.q }); if (m.a) turns.push({ role: "assistant", content: m.a }); });
+  turns.push({ role: "user", content: text });
+  try {
+    const out = await sampler(turns, { cache: false, onText: ({ text }) => { msg.a = text; renderHelpMsgs(); } });
+    msg.a = out.text;
+  } catch(e){ msg.a = claudeError(e); }
+  help.busy = false;
+  renderHelp();
+}
+function speakToggle(text, btn){
+  if (!("speechSynthesis" in window)) return;
+  if (speechSynthesis.speaking){ speechSynthesis.cancel(); if (btn) btn.textContent = "Read aloud"; return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.onend = () => { if (btn) btn.textContent = "Read aloud"; };
+  speechSynthesis.speak(u);
+  if (btn) btn.textContent = "Stop reading";
+}
+function renderHelpMsgs(){
+  const box = $("helpMsgs");
+  box.innerHTML = "";
+  help.msgs.forEach(m => {
+    const card = el("div", "msg");
+    card.append(el("b", null, m.q));
+    if (m.a){
+      const p = el("p", null, m.a); card.append(p);
+      const read = el("button", "btn ghost small", "Read aloud");
+      read.onclick = () => speakToggle(m.a, read);
+      card.append(read);
+    } else card.append(el("span", "hint", "Thinking…"));
+    box.append(card);
+  });
+}
+function renderHelp(){
+  $("helpImg").hidden = !help.url;
+  if (help.url) $("helpImg").src = help.url;
+  const s = $("helpStage");
+  s.innerHTML = "";
+  if (help.stage === "reading") s.append(el("p", "hint", "Reading your screenshot…"));
+  if (help.stage === "thinking") s.append(el("p", "hint", "Working through the problem…"));
+  if (help.stage === "failed") s.append(el("p", "nudgetext", help.error));
+  if (help.stage === "choosing"){
+    s.append(el("h3", null, `I found ${help.problems.length} problems. Which one do you need help with?`));
+    help.problems.forEach(p => {
+      const b = el("button", "probbtn");
+      b.append(el("span", "stepnum", p.number), el("span", null, p.text));
+      b.onclick = () => helpSolve(`Problem ${p.number}`);
+      s.append(b);
+    });
+    s.append(el("p", "hint", "Or type exactly what you need below, like “number 3, part b”."));
+  }
+  if (help.stage === "ready" && help.walk){
+    const w = help.walk;
+    s.append(el("span", "label", "Problem"), el("p", "quizq", w.problem));
+    const list = el("div", "steplist");
+    w.steps.slice(0, help.revealed).forEach((st, i) => {
+      const row = el("div", "steprow");
+      const body = el("div");
+      body.append(el("b", null, st.title), el("p", null, st.detail));
+      row.append(el("span", "stepnum", String(i + 1)), body);
+      list.append(row);
+    });
+    s.append(list);
+    const actions = el("div", "row");
+    if (help.revealed < w.steps.length){
+      const next = el("button", "btn primary small", "Next step"); next.onclick = () => { help.revealed++; renderHelp(); };
+      const all = el("button", "btn small", "Show all steps"); all.onclick = () => { help.revealed = w.steps.length; renderHelp(); };
+      actions.append(next, all);
+    } else if (w.answer && !help.answerShown){
+      const show = el("button", "btn primary small", "Show answer"); show.onclick = () => { help.answerShown = true; renderHelp(); };
+      actions.append(show);
+    }
+    const read = el("button", "btn ghost small", "Read steps aloud");
+    read.onclick = () => speakToggle([w.problem, ...w.steps.slice(0, help.revealed).map((st, i) => `Step ${i + 1}. ${st.title}. ${st.detail}`)].join(" "), read);
+    actions.append(read, el("span", "hint", `Step ${help.revealed} of ${w.steps.length}`));
+    s.append(actions);
+    if (help.answerShown && w.answer){
+      const ans = el("div", "answerbox"); ans.append(el("span", "label", "Answer"), el("p", "quizq", w.answer)); s.append(ans);
+    }
+    if (help.savedTo && w.notes.length) s.append(el("p", "hint", `Saved ${w.notes.length} note${w.notes.length === 1 ? "" : "s"} to “${help.savedTo}”.`));
+  }
+  $("helpChatTitle").textContent = help.stage === "choosing" ? "Which problem, and what part?" : help.walk ? "Still stuck? Ask about any step." : "Ask Tether anything";
+  $("helpInput").placeholder = help.stage === "choosing" ? "Help me with number 3" : help.walk ? "Why do we divide by 3 in step 2?" : "How do I find the derivative of x² sin x?";
+  $("helpSend").disabled = help.busy;
+  renderHelpMsgs();
+}
+$("helpPick").onclick = () => $("helpFile").click();
+$("helpFile").onchange = () => { const f = $("helpFile").files[0]; if (f) helpLoad(f); $("helpFile").value = ""; };
+const hd = $("helpDrop");
+hd.addEventListener("dragover", e => { e.preventDefault(); hd.classList.add("over"); });
+hd.addEventListener("dragleave", () => hd.classList.remove("over"));
+hd.addEventListener("drop", e => { hd.classList.remove("over"); const f = imageFiles(e.dataTransfer)[0]; if (f){ e.preventDefault(); helpLoad(f); } });
+document.addEventListener("paste", e => {
+  if (tab !== "help" || anyModalOpen()) return;
+  const f = imageFiles(e.clipboardData)[0];
+  if (f){ e.preventDefault(); helpLoad(f); }
+});
+function helpSend(){ const t = $("helpInput").value; $("helpInput").value = ""; helpAsk(t); }
+$("helpSend").onclick = helpSend;
+$("helpInput").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); helpSend(); } });
+/* Talk instead of typing, where the browser allows the microphone. */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let listening = null;
+if (!SR) $("helpMic").hidden = true;
+$("helpMic").onclick = () => {
+  if (listening){ listening.stop(); return; }
+  try {
+    const r = new SR();
+    r.interimResults = true;
+    r.lang = navigator.language || "en-US";
+    r.onresult = ev => { $("helpInput").value = [...ev.results].map(x => x[0].transcript).join(""); };
+    r.onerror = ev => {
+      $("helpVoiceNote").hidden = false;
+      $("helpVoiceNote").textContent = ev.error === "not-allowed" || ev.error === "service-not-allowed"
+        ? "The microphone isn't allowed here. Talking works in Tether for Mac, or type your question instead."
+        : "Couldn't hear that. Try again or type your question.";
+    };
+    r.onend = () => { listening = null; $("helpMic").classList.remove("on"); if ($("helpInput").value.trim()) helpSend(); };
+    r.start();
+    listening = r;
+    $("helpMic").classList.add("on");
+  } catch(e){ $("helpVoiceNote").hidden = false; $("helpVoiceNote").textContent = "Talking isn't available here. Type your question instead."; }
+};
+
+/* ---------- usage counts + feedback (how Tether keeps improving) ---------- */
+const FEATURES = [
+  ["session_started","Started a session"],["session_saved","Saved a session"],["goal_finished","Finished a goal"],
+  ["just_start","5-minute just start"],["extended","Kept going after 5 minutes"],["step_added","Added a step"],
+  ["step_ticked","Ticked off a step"],["breakdown","Break it down (Gemini)"],["thought_parked","Parked a thought"],
+  ["distraction_logged","Logged a distraction"],["checkin_yes","Check-in: on task"],["checkin_no","Check-in: drifted"],
+  ["sound","Background sound"],["shortcut","Keyboard shortcut"],["patterns_viewed","Opened Patterns"],
+  ["range_changed","Changed chart range"],["table_opened","Opened chart table"],["plan_edited","Edited an if-then plan"],
+  ["todo_done","Checked off a to-do"],["room_viewed","Opened the Room"],["cheer_sent","Sent a cheer"],["feedback_sent","Sent feedback"],
+  ["study_session","Used study mode"],["study_image","Added a screenshot"],["study_text","Added pasted text"],
+  ["quiz_taken","Took a quiz"],["help_snap","Snapped a problem"],["help_chat","Asked the tutor"],["quiz_retake","Retook a quiz"],["welcome_try","Tried the welcome session"]
+];
+let usage = {}, usageDoc = null, usageReady = false, usageTimer = null, usageWriting = false, usageDirty = false, firstSeen = null;
+function track(key){
+  usage[key] = (usage[key] || 0) + 1;
+  usageDirty = true;
+  if (usageReady){ clearTimeout(usageTimer); usageTimer = setTimeout(flushUsage, 4000); }
+}
+async function flushUsage(){
+  if (!usageDoc || !usageReady || usageWriting || !usageDirty) return;
+  usageWriting = true; usageDirty = false;
+  try { await usageDoc.set({ counts: {...usage}, firstSeen, lastSeen: Date.now() }); }
+  catch(e){ if (e && e.code === "invalid_argument") usageDoc = null; } // this viewer can't save data
+  usageWriting = false;
+  if (usageDirty && usageDoc){ clearTimeout(usageTimer); usageTimer = setTimeout(flushUsage, 4000); }
+}
+addEventListener("pagehide", () => { flushUsage(); });
+async function initUsage(db, id){
+  usageDoc = db.collection("usage").doc(id);
+  try {
+    const snap = await usageDoc.get();
+    const d = snap.exists ? (snap.data() || {}) : {};
+    const prev = d.counts || {};
+    for (const k in prev) if (typeof prev[k] === "number") usage[k] = (usage[k] || 0) + prev[k];
+    firstSeen = typeof d.firstSeen === "number" ? d.firstSeen : Date.now();
+  } catch(e){ firstSeen = Date.now(); }
+  usageReady = true;
+  track("visit");
+}
+
+let fbDoc = null, fbKind = "idea", fbAllowed = true;
+const NO_ACCESS = "Sending feedback needs Contributor access to this page. Ask the person who shared Tether with you.";
+chipGroup($("fbKinds"), "k", v => fbKind = v);
+function openFeedback(){
+  $("fbStatus").textContent = !fbDoc ? "Sign in to Gemini to send feedback." : fbAllowed ? "" : NO_ACCESS;
+  $("fbSend").disabled = !fbDoc || !fbAllowed;
+  openModal("m-feedback");
+  $("fbText").focus();
+}
+$("feedbackBtn").onclick = openFeedback;
+$("breakFeedback").onclick = openFeedback;
+$("fbCancel").onclick = () => closeModal("m-feedback");
+$("fbSend").onclick = async () => {
+  const text = $("fbText").value.trim();
+  if (!text){ $("fbStatus").textContent = "Write a sentence or two first."; $("fbText").focus(); return; }
+  const b = $("fbSend"); b.disabled = true; b.textContent = "Sending…";
+  try {
+    const snap = await fbDoc.get();
+    const prev = snap.exists ? (snap.data() || {}) : {};
+    const items = Array.isArray(prev.items) ? prev.items : [];
+    items.push({ t: Date.now(), kind: fbKind, text: text.slice(0, 2000) });
+    await fbDoc.set({ items: items.slice(-50), updatedAt: Date.now() });
+    $("fbText").value = "";
+    closeModal("m-feedback");
+    toast("Thanks! Feedback sent");
+    track("feedback_sent");
+  } catch(e){
+    if (e && e.code === "invalid_argument"){ fbAllowed = false; $("fbStatus").textContent = NO_ACCESS; }
+    else $("fbStatus").textContent = "Couldn't send right now. Check your connection and try again.";
+  }
+  b.disabled = !fbAllowed; b.textContent = "Send";
+};
+
+/* owner-only Insights: everyone's usage counts and feedback, live */
+let insightUsage = [], insightFb = [], fbSeen = 0;
+try { fbSeen = +localStorage.getItem("tether-fbseen") || 0; } catch(e){}
+function initInsights(db){
+  $("tab-insights").hidden = false;
+  db.collection("usage").onSnapshot(snap => {
+    insightUsage = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+    if (tab === "insights") renderInsights();
+  }, () => {});
+  db.collection("feedback").onSnapshot(snap => {
+    insightFb = snap.docs.flatMap(d => {
+      const items = (d.data() || {}).items;
+      return Array.isArray(items) ? items.map(it => ({ t: Number(it.t) || 0, kind: it.kind, text: String(it.text || ""), by: d.id })) : [];
+    }).sort((a,b) => b.t - a.t);
+    updateFbBadge();
+    if (tab === "insights") renderInsights();
+  }, () => {});
+}
+function updateFbBadge(){
+  const unseen = insightFb.filter(f => f.t > fbSeen).length;
+  $("fbCount").textContent = unseen ? `· ${unseen} new` : "";
+}
+async function renderInsights(){
+  const people = insightUsage.length, weekAgo = Date.now() - 7*86400000;
+  const count = (u,k) => { const v = (u.counts || {})[k]; return typeof v === "number" ? v : 0; };
+  const total = k => insightUsage.reduce((a,u) => a + count(u,k), 0);
+  const saved = total("session_saved");
+  $("usageStats").innerHTML = [
+    ["People", people],
+    ["Active this week", insightUsage.filter(u => (u.lastSeen || 0) >= weekAgo).length],
+    ["Sessions saved", saved],
+    ["Sessions per person", people ? (saved / people).toFixed(1) : "–"],
+    ["Feedback notes", insightFb.length]
+  ].map(([k,v]) => `<div class="stat"><span class="label">${k}</span><b>${v}</b></div>`).join("");
+  const rows = FEATURES.map(([k,n]) => ({ n, reach: insightUsage.filter(u => count(u,k) > 0).length, uses: total(k) }))
+    .sort((a,b) => b.reach - a.reach || b.uses - a.uses);
+  $("usageBars").innerHTML = people ? rows.map(r =>
+    `<div class="bar" title="${r.reach} of ${people} people · ${r.uses} uses"><span>${esc(r.n)}</span><div class="track"><div class="fill" style="width:${100*r.reach/people}%"></div></div><span class="n">${r.uses}</span></div>`).join("")
+    : `<p class="hint">No usage yet. Share Tether, and counts appear here as people use it.</p>`;
+
+  const el = $("fbList");
+  if (!insightFb.length){ el.innerHTML = `<li><span class="muted">No feedback yet. People can send it from the button at the bottom of the page or after a session.</span></li>`; }
+  else {
+    const ids = [...new Set(insightFb.map(f => f.by))];
+    let profs = {};
+    if (users && ids.length){ try { profs = await users.profiles(ids); } catch(e){} }
+    const KIND = { idea:["Idea",""], bug:["Broken","break"], love:["Love it","focus"] };
+    el.innerHTML = "";
+    insightFb.slice(0, 100).forEach(f => {
+      const li = document.createElement("li");
+      li.style.cssText = "flex-direction:column;align-items:flex-start;gap:4px";
+      const top = document.createElement("div"); top.className = "row"; top.style.gap = "8px";
+      const [kname, kcls] = KIND[f.kind] || ["Note",""];
+      const pill = document.createElement("span"); pill.className = "pill " + kcls; pill.textContent = kname;
+      const who = document.createElement("span"); who.className = "hint";
+      who.textContent = `${(profs[f.by] && profs[f.by].name) || "Someone"} · ${new Date(f.t).toLocaleDateString(undefined, { month:"short", day:"numeric" })}` + (f.t > fbSeen ? " · new" : "");
+      top.append(pill, who);
+      const body = document.createElement("span"); body.textContent = f.text;
+      li.append(top, body);
+      el.append(li);
+    });
+  }
+  // opening Insights marks feedback as seen
+  if (insightFb.length && insightFb[0].t > fbSeen){
+    fbSeen = insightFb[0].t;
+    try { localStorage.setItem("tether-fbseen", String(fbSeen)); } catch(e){}
+    updateFbBadge();
+  }
+}
+
+/* ---------- boot capabilities ---------- */
+energyHint();
+renderLevel();
+updateStudyAffordances();
+showTab(tab);
+if (!welcomeSeen() && !state.welcomed && !state.sessions.length) showWelcome();
+if (window.claude && window.claude.use){
+  window.claude.use("user").then(u => { users = u; }).catch(() => {});
+  window.claude.use("db").then(async db => {
+    if (!db) return;
+    try {
+      const u = await window.claude.use("user");
+      const id = u && await u.id();
+      if (!id) return;
+      dbDoc = db.collection("data/users/" + id).doc("tether");
+      fbDoc = db.collection("feedback").doc(id);
+      studyDoc = db.collection("data/users/" + id).doc("study");
+      studyDoc.get().then(snap => {
+        const items = snap.exists ? (snap.data() || {}).items : null;
+        if (Array.isArray(items)){ study = { items }; if (tab === "patterns") renderStudy(); }
+        else if (study.items.length) saveStudy();
+      }).catch(() => {});
+      if ((await u.can("data.write")) === false) fbAllowed = false;
+      initUsage(db, id);
+      if (await u.isOwner()) initInsights(db);
+      const snap = await dbDoc.get();
+      if (snap.exists){
+        const s = snap.data() || {};
+        state = { sessions: s.sessions || [], plans: {...DEFAULT_PLANS, ...(s.plans || {})}, todos: s.todos || [], xp: s.xp || 0, welcomed: !!s.welcomed };
+        if ((state.welcomed || state.sessions.length) && !$("m-welcome").hidden) closeModal("m-welcome");
+        renderLevel();
+        if (tab === "patterns") renderPatterns();
+      } else if (state.sessions.length || state.todos.length){ save(); }
+    } catch(e){ dbDoc = null; }
+  }).catch(() => {});
+  window.claude.use("room").then(r => {
+    if (!r) return;
+    room = r;
+    room.onPeers(ch => {
+      const others = ch.peers.filter(p => p.kind === "viewer" && !p.isMe).length;
+      $("roomCount").textContent = others ? `· ${others + 1}` : "";
+      $("roomHint").textContent = others ? `${others} other${others===1?"":"s"} focusing in the room with you.` : "";
+      if (tab === "room") renderRoom();
+    }, () => {});
+    room.on("cheer", msg => {
+      if (msg.isMe || !msg.data || msg.data.to !== myPeer()) return;
+      toast("Someone in the room cheered you on!"); tinyChime();
+    }, () => {});
+    publishPresence();
+    if (tab === "room") renderRoom();
+  }).catch(() => {});
+  window.claude.use("sample").then(async s => {
+    if (!s) return;
+    sampler = s;
+    $("breakdownBtn").hidden = false;
+    try { const limits = await s.limits(); canSeeImages = !!(limits && limits.images); } catch(e){ canSeeImages = false; }
+    updateStudyAffordances();
+    if (tab === "patterns") renderStudy();
+  }).catch(() => {});
+}
+})();
+</script>
+
+</body>
+</html>
