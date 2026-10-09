@@ -643,7 +643,7 @@ footer,#breakFeedback{display:none!important} /* feedback and usage counts need 
     <label class="field"><span class="label">Gemini API key</span><input type="password" id="aiKey" autocomplete="off" placeholder="Paste your key"></label>
     <label class="field"><span class="label">Model</span><input type="text" id="aiModel" autocomplete="off"></label>
     <p class="hint" id="aiStatus"></p>
-    <div class="row"><button class="btn primary" id="aiSave">Save</button><button class="btn ghost" id="aiForget">Remove key</button><button class="btn ghost" id="aiClose">Close</button></div>
+    <div class="row"><button class="btn primary" id="aiSave">Save</button><button class="btn" id="aiTest">Test</button><button class="btn ghost" id="aiForget">Remove key</button><button class="btn ghost" id="aiClose">Close</button></div>
   </div>
 </div>
 <canvas id="confetti" hidden></canvas>
@@ -651,7 +651,7 @@ footer,#breakFeedback{display:none!important} /* feedback and usage counts need 
 
 <script>
 (() => {
-  const KEY = "tether-gemini-key", MODEL = "tether-gemini-model", DEFAULT_MODEL = "gemini-flash-latest";
+  const KEY = "tether-gemini-key", MODEL = "tether-gemini-model", DEFAULT_MODEL = "gemini-flash-latest", FALLBACK_MODEL = "gemini-2.5-flash";
   const get = k => { try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } };
   const toBase64 = blob => new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -660,7 +660,7 @@ footer,#breakFeedback{display:none!important} /* feedback and usage counts need 
     r.readAsDataURL(blob);
   });
   async function gemini(input, opts = {}, json = false){
-    const key = get(KEY);
+    const key = opts.key || get(KEY);
     if (!key) throw { code: "no_key" };
     const turns = typeof input === "string" ? [{ role: "user", content: input }] : input;
     const contents = [];
@@ -676,24 +676,39 @@ footer,#breakFeedback{display:none!important} /* feedback and usage counts need 
     }
     const body = { contents };
     if (json) body.generationConfig = { responseMimeType: "application/json" };
-    const model = get(MODEL) || DEFAULT_MODEL;
-    let res;
-    try {
-      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-        method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify(body), signal: opts.signal
-      });
-    } catch(e){ throw { code: e && e.name === "AbortError" ? "cancelled" : "upstream_error" }; }
+    const call = async model => {
+      try {
+        return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+          method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+          body: JSON.stringify(body), signal: opts.signal
+        });
+      } catch(e){
+        throw { code: e && e.name === "AbortError" ? "cancelled" : "upstream_error", message: "Couldn't reach Gemini. Check your internet connection." };
+      }
+    };
+    let model = opts.model || get(MODEL) || DEFAULT_MODEL;
+    let res = await call(model);
+    if (res.status === 404 && model !== FALLBACK_MODEL) res = await call(model = FALLBACK_MODEL); // model name not found
+    for (let tries = 0; (res.status === 500 || res.status === 503) && tries < 2; tries++){ // busy: wait and retry
+      await new Promise(r => setTimeout(r, 1500 * (tries + 1)));
+      res = await call(model);
+    }
     if (!res.ok){
       const err = await res.json().catch(() => ({}));
-      const msg = (err.error && err.error.message) || "";
-      throw { code: res.status === 429 ? "rate_limited" : (res.status === 400 && /key/i.test(msg)) || res.status === 401 || res.status === 403 ? "bad_key" : "upstream_error", message: msg };
+      const msg = (err.error && err.error.message) || `Error ${res.status}`;
+      throw { code: res.status === 429 ? "rate_limited" : (res.status === 400 && /api key/i.test(msg)) || res.status === 401 || res.status === 403 ? "bad_key" : "upstream_error", message: msg };
     }
     const data = await res.json();
-    const text = ((data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || []).map(p => p.text || "").join("");
+    const cand = data.candidates && data.candidates[0];
+    const text = ((cand && cand.content && cand.content.parts) || []).filter(p => !p.thought).map(p => p.text || "").join("");
+    if (!text.trim()){
+      const why = (data.promptFeedback && data.promptFeedback.blockReason) || (cand && cand.finishReason) || "no reply";
+      throw { code: "upstream_error", message: `Gemini sent back an empty answer (${why}). Try again or try a smaller screenshot.` };
+    }
     if (opts.onText) opts.onText({ text, delta: text });
     return text;
   }
+  window.tetherTestGemini = (key, model) => gemini("Reply with just the word: ready", { key, model });
   const sample = async (input, opts) => ({ text: await gemini(input, opts, false), truncated: false });
   sample.json = async (input, opts) => {
     const text = await gemini(input, opts, true);
@@ -701,7 +716,7 @@ footer,#breakFeedback{display:none!important} /* feedback and usage counts need 
     catch(e){
       const m = text.match(/[\[{][\s\S]*[\]}]/);
       if (m) { try { return JSON.parse(m[0]); } catch(e2){} }
-      throw { code: "invalid_json", text };
+      throw { code: "invalid_json", text, message: "Gemini's answer came back in the wrong format. Try again." };
     }
   };
   sample.limits = async () => ({ images: { maxCount: 5, mediaTypes: ["image/png", "image/jpeg", "image/webp", "image/gif"] } });
@@ -723,7 +738,18 @@ footer,#breakFeedback{display:none!important} /* feedback and usage counts need 
       } catch(e){}
       location.reload(); // the page connects to the AI when it loads
     };
-    $("aiForget").onclick = () => { try { localStorage.removeItem(KEY); } catch(e){} location.reload(); };
+    $("aiTest").onclick = async () => {
+      const key = $("aiKey").value.trim();
+      if (!key){ $("aiStatus").textContent = "Paste your key first."; return; }
+      $("aiStatus").textContent = "Testing…";
+      try {
+        await window.tetherTestGemini(key, $("aiModel").value.trim() || DEFAULT_MODEL);
+        $("aiStatus").textContent = "✓ Connected. Gemini is working. Click Save if you haven't yet.";
+      } catch(e){
+        $("aiStatus").textContent = "✗ Not working: " + ((e && e.message) || (e && e.code) || e);
+      }
+    };
+    $("aiForget").onclick =() => { try { localStorage.removeItem(KEY); } catch(e){} location.reload(); };
     if (!get(KEY)) $("aiSettingsBtn").classList.add("primary");
   });
 })();
@@ -1436,6 +1462,7 @@ function claudeError(e){
     : code === "not_granted" ? "Gemini isn't allowed on this page. Turn it on in the page's permissions."
     : code === "rate_limited" ? "Too many requests right now. Try again in a minute."
     : code === "image_rejected" ? "That image couldn't be read. Try a PNG or JPEG screenshot."
+    : e && e.message ? "Gemini said: " + String(e.message).slice(0, 200)
     : "Gemini couldn't read that one. Try again.";
 }
 async function addCapture(kind, payload){
